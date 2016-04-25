@@ -176,7 +176,7 @@ area({rectangle, 2, 3}).
 			\item Каждый лист - черный.
 			\item Если узел красный, то оба его ребенка черные.
 			\item Все простые пути, идущие от корня к листьям, содержат 
-				  одинаковое количество черных листьев.
+				  одинаковое количество черных узлов.
 		\end{enumerate}
 		
 		Для удобства работы, все листья заменяются одним черным листом.
@@ -389,6 +389,15 @@ balance(Tree) ->
 				\includegraphics[width=\textwidth]{img/tan-aus.png}
 				\caption{Арифметика цветов}
 			\end{figure}
+			Реализуется арифметика цветов следующей функцией добавления цвета:
+			\begin{lstlisting}
+addBlack({Key, red, Left, Right}) ->
+	{Key, black, Left, Right};
+	
+addBlack({Key, black, Left, Right})	->
+	{Key, doubleBlack, Left, Right}.			
+			\end{lstlisting}
+			Функция вычитания цвета не используется.
 			
 			Рассмотри алгоритм удаления. Для соблюдения красно-черных свойств необходимо:
 			\begin{enumerate}
@@ -405,7 +414,249 @@ balance(Tree) ->
 					  и балансировки они могли изменить цвет. 
 			\end{enumerate}
 			
-
+			\begin{lstlisting}
+del_element(Key, Tree) -> 
+	nilFix(make_black(del(Key, Tree))).
+			\end{lstlisting}
+			где 
+			\begin{lstlisting}
+nilFix({nil, doubleBlack, nil, nil}) ->
+	{nil, black, nil, nil};
+	
+nilFix(Tree) ->
+	Tree.					
+			\end{lstlisting}	
+			если агрументом является двойной черный лист преобразует его в черный,
+			а если аргумент - дерево, то возвращает его без изменений.
+			
+			Рассмотрим функцию del, которая удаляет узел с заданным значением из дерева,
+			а затем вызывает функцию балансировки дерева delFix. 
+			\begin{lstlisting}
+del(_, {nil, black, nil, nil}) ->
+	{nil, black, nil, nil};
+			\end{lstlisting}
+			если производится попытка удалить узел из пустого дерева, то вернуть пустое дерево.
+			\begin{lstlisting}
+del(Key, {Key, red, Left, {nil, black, nil, nil}}) ->
+	Left;
+	
+del(Key, {Key, red, {nil, black, nil, nil}, Right})	->
+	Right;
+			\end{lstlisting}
+			если цвет удаляемого узла красный, и у него есть только один потомок, то
+			вернуть потомка.
+			\begin{lstlisting}
+del(Key, {Key, black, Left, {nil, black, nil, nil}}) ->
+	addBlack(Left);
+		
+del(Key, {Key, black, {nil, black, nil, nil}, Right}) ->
+	addBlack(Right);
+			\end{lstlisting}
+			если цвет удаляемого узла черный, и у него есть только один потомок, то
+			вернуть потомка с добавленным цветом для сохранения 5 красно-черного свойства.
+			\begin{lstlisting}
+del(Key, {Key, Color, Left, Right})	->
+	delFix({max(Left), Color, del(max(Left), Left), Right});
+			\end{lstlisting}
+			если у удаляемого узла 2 потомка, то вернуть дерево в котором вместо удаленного 
+			узла будет узел с максимальным значением из его левого потомка, цвет удаленного узла, 
+			левый потомок без своего максимального значения, а правый потомок останется без изменений.
+			Результат необходимо сбалансировать.
+			\begin{lstlisting}
+del(Key, {KeyTree, ColorTree, LeftTree, RightTree}) when Key < KeyTree 	->
+	delFix({KeyTree, ColorTree, del(Key, LeftTree), RightTree});
+			
+del(Key, {KeyTree, ColorTree, LeftTree, RightTree}) when Key > KeyTree 	->	
+	delFix({KeyTree, ColorTree, LeftTree, del(Key, RightTree)}).
+			\end{lstlisting}
+			рекурсивный поиск удаляемого узла в дереве и балансировка дерева после 
+			удаления.
+			
+			Функция delFix реализует следующие варианты нарушения красно-черных свойств 
+			при удаалении узла:
+			\begin{figure}[H]
+				\centering
+				\includegraphics[width=\textwidth]{img/tan-aus.png}
+				\caption{Cлучай 1}
+			\end{figure}
+			\begin{lstlisting}
+delFix({Key2, 														   				
+	    Color2, 													   				
+	    {Key1, doubleBlack, Left1, Right1}, 						   				
+	    {Key3, black, {Left3Key,  black, Left3Left,  Left3Right}, 	   				
+	                  {Right3Key, black, Right3Left, Right3Right}	   				
+	    }															   				
+	   })															   				
+->																	   				
+	addBlack({Key2, 												   				
+	          Color2, 												   				
+	          nilFix({Key1, black, Left1, Right1}), 				   				
+	          {Key3, red, {Left3Key,  black, Left3Left,  Left3Right},  				
+	                      {Right3Key, black, Right3Left, Right3Right}  				
+	          }     												   				
+	         });				
+			\end{lstlisting}
+			
+			\begin{figure}[H]
+				\centering
+				\includegraphics[width=\textwidth]{img/tan-aus.png}
+				\caption{Cлучай 2}
+			\end{figure}
+			\begin{lstlisting}
+delFix({Key2, 														   				
+	    Color2, 													   				
+	    {Key1, black, {Left1Key,  black, Left1Left,  Left1Right}, 	   				
+	                  {Right1Key, black, Right1Left, Right1Right}},    				
+	    {Key3, doubleBlack, Left3, Right3}							   				
+	   }) 															   				
+->																	   				
+	addBlack({Key2, 												   				
+	          Color2, 												   				
+	          {Key1, red, {Left1Key,  black, Left1Left,  Left1Right},  				
+	                      {Right1Key, black, Right1Left, Right1Right}},				
+	          nilFix({Key3, black, Left3, Right3})					   				
+	         });													   				
+			\end{lstlisting}
+			
+			\begin{figure}[H]
+				\centering
+				\includegraphics[width=\textwidth]{img/tan-aus.png}
+				\caption{Cлучай 3}
+			\end{figure}
+			\begin{lstlisting}
+delFix({Key2, 														   											
+	    black, 														   				
+	    {Key1, doubleBlack, Left1, Right1}, 						   				
+	    {Key3, red, {Left3Key,  black, Left3Left,  Left3Right}, 	   				
+	                {Right3Key, black, Right3Left, Right3Right}		   				
+	    }															   				
+	   })															   				
+->																	   				
+	{Key3, 															   				
+	 black, 														   				
+	 delFix({Key2, red, {Key1,     doubleBlack, Left1, 	   Right1},    				
+	 					{Left3Key, black, 		Left3Left, Left3Right}}),			 
+	 {Right3Key, black, Right3Left, Right3Right} 									
+	};																				
+			\end{lstlisting}
+			
+			\begin{figure}[H]
+				\centering
+				\includegraphics[width=\textwidth]{img/tan-aus.png}
+				\caption{Cлучай 4}
+			\end{figure}
+			\begin{lstlisting}
+delFix({Key2,																		
+   	    black,																		
+   	    {Key1, red, {Left1Key,  black, Left1Left,  Left1Right},						
+   	                {Right1Key, black, Right1Left, Right1Right}},					
+   	    {Key3, doubleBlack, Left3, Right3}											
+   	   })																			
+->																					
+	{Key1,																			
+	 black,																										
+	 {Left1Key,  black, Left1Left,  Left1Right},									
+	 delFix({Key2, red, {Right1Key, black, 		 Right1Left, Right1Right},			
+	 					{Key3, 		doubleBlack, Left3, 	 Right3}})				
+	};																				
+			\end{lstlisting}
+			
+			\begin{figure}[H]
+				\centering
+				\includegraphics[width=\textwidth]{img/tan-aus.png}
+				\caption{Cлучай 5}
+			\end{figure}
+			\begin{lstlisting}
+delFix({Key2,																		
+		Color2,																		
+		{Key1, doubleBlack, Left1, Right1},											
+		{Key4, black, {Key3, red, Left3, Right3}, 									
+					  {Right4Key, black, Right4Left, Right4Right}}					
+	   })																			
+->																					
+	delFix({Key2,																	
+		    Color2,																	
+		    {Key1, doubleBlack, Left1, Right1},										
+		    {Key3, black, Left3, 													
+		    			  {Key4, red, Right3,										 
+		    						 {Right4Key, black, Right4Left, 				
+		    						 					Right4Right}}}				
+	});																				
+			\end{lstlisting}
+			
+			\begin{figure}[H]
+				\centering
+				\includegraphics[width=\textwidth]{img/tan-aus.png}
+				\caption{Cлучай 6}
+			\end{figure}
+			\begin{lstlisting}
+delFix({Key3,																		
+		Color3,																		
+		{Key1, black, {Left1Key, black, Left1Left, Left1Right}, 					
+					  {Key2, 	 red,   Left2, 	   Right2    }},					
+		{Key4, doubleBlack, Left4, Right4}											
+	   })																			
+->																					
+	delFix({Key3, 																	
+			Color3,																	
+			{Key2, black, {Key1, 													
+						   red, 													
+						   {Left1Key, black, Left1Left, Left1Right},				
+						   Left2},													
+						  Right2},													
+			{Key4, doubleBlack, Left4, Right4}										
+	});																				
+			\end{lstlisting}
+			
+			\begin{figure}[H]
+				\centering
+				\includegraphics[width=\textwidth]{img/tan-aus.png}
+				\caption{Cлучай 7}
+			\end{figure}
+			\begin{lstlisting}
+delFix({Key2,																		
+		Color2,																		
+		{Key1, doubleBlack, Left1, Right1},											
+		{Key3, black, Left3,														
+					  {Key4, red, Left4, 											
+					 			  {Right4Key, black, Right4Left, Right4Right}}}		
+	   })																			
+->																					
+	{Key3,																			
+	 Color2,																		
+	 {Key2, black, nilFix({Key1, black, Left1, Right1}),							
+	               Left3},															
+	 {Key4, black, Left4,															
+				   {Right4Key, black, Right4Left, Right4Right}}						
+	};																				
+			\end{lstlisting}
+			
+			\begin{figure}[H]
+				\centering
+				\includegraphics[width=\textwidth]{img/tan-aus.png}
+				\caption{Cлучай 8}
+			\end{figure}
+			\begin{lstlisting}
+delFix({Key3,																		
+		Color3,																		
+		{Key2, black, {Key1, 														
+					   red, 														
+					   {Left1Key, black, Left1Left, Left1Right},					
+					   Right1}, 													
+					  Right2},														
+		{Key4, doubleBlack, Left4, Right4}											
+	   })																			
+->																					
+	{Key2,																			
+	 Color3,																		
+	 {Key1, black, {Left1Key, black, Left1Left, Left1Right},						
+	 			   Right1},															
+	 {Key3, black, Right2,															
+	 			   nilFix({Key4, black, Left4, Right4})}							
+	};																				
+			\end{lstlisting}
+			
+			
 	\subsection{Логические функции}	
 	\subsection{Перевод в список и обратно, свертка и фильтрация}
 	\subsection{Объединение, пересечение, разность}
