@@ -657,8 +657,89 @@ delFix({Key3,
 			\end{lstlisting}
 			
 			
-	\subsection{Логические функции}	
+	\subsection{Логические функции}
+		Для работы с упорядоченным множеством реализованы следующие логические операции:
+		\begin{enumerate}
+			\item Проверка на принадлежность элемента упорядоченному множеству
+			\item Проверка на то, является ли одно упорядоченное множество
+				  подмножеством другого
+			\item Проверка на непересекаемость двух упорядоченных множеств
+		\end{enumerate} 
+		Рассмотрим каждую из них.
+		
+		\subsubsection{Принадлежность элемента множеству}
+			Проверка на принадлежность элемента упорядоченному множеству
+			реализуется с помощью функции is\_element(Elem, OSet), где Elem - 
+			значение элемента, а OSet - упорядоченное множество.
+			\begin{lstlisting}
+is_element(_,  {nil, black, nil, nil}) ->
+	false;				
+			\end{lstlisting}
+			Пустому множеству не может принадлежать никакой элемент.
+			\begin{lstlisting}
+is_element(Elem, {Elem, _, _, _}) ->
+	true;
+			\end{lstlisting}
+			Если найден узел с искомым значением, то элемент принадлежит множеству.
+			\begin{lstlisting}
+is_element(Elem, {CurrElem, _, Left, Right}) ->		
+	if
+		Elem < CurrElem -> is_element(Elem, Left);
+		Elem > CurrElem -> is_element(Elem, Right)
+	end.	
+			\end{lstlisting}
+			Поиск элемента в дереве реализующем упорядоченное множество.
+			
+		\subsubsection{Является ли одно упорядоченное множество подмножеством другого}
+			Проверка на то, является ли одно упорядоченное множество подмножеством другого
+			реализуется с помощью функции is\_subset(OSetA, OSetB), где OSetA - предполагаемое
+			подмножество OSetB.
+			\begin{lstlisting}
+is_subset({nil, black, nil, nil}, _) ->
+	true;	
+			\end{lstlisting}
+			Пустое множество является подмножеством любого множества.	
+			\begin{lstlisting}
+is_subset({Key, _, Left, Right}, OSetB) ->
+	IsElem = is_element(Key, OSetB),
+	if
+		IsElem  -> is_subset(Left, OSetB) and is_subset(Right, OSetB);
+		true 	-> false
+	end.
+			\end{lstlisting}
+			Проверяется принадлежность корня OSetA множеству OSetB, и если корень
+			принадлежит OSetB, то проверяется принадлежность левого и правого поддерева
+			множеству OSetB. Иначе OSetA не является подмножеством OSetB.
+			
+		\subsubsection{Непересекаемость двух упорядоченных множеств}
+			Проверка на непересекаемость двух упорядоченных множеств реализуется с помощью функции
+			is\_disjoint(OSetA, OSetB), где OSetA и OSetB - упорядоченные множества.
+			\begin{lstlisting}
+is_disjoint(_, {nil, black, nil, nil}) ->
+	true;	
+			\end{lstlisting}
+			Никакое множество не пересекается с пустым.
+			\begin{lstlisting}
+is_disjoint(OSetA, {Key, _, Left, Right}) ->
+	IsElem = is_element(Key, OSetA),
+	if
+		IsElem	-> false;
+		true	-> is_disjoint(OSetA, Left) and is_disjoint(OSetA, Right)
+	end.
+			\end{lstlisting}
+			Проверяется принадлежность корня OSetB множеству OSetA, и если корень
+			принадлежит OSetA, то множества не являются пересекающимися. Иначе
+			проверяется непересекаемость левого и правого поддерева множеству OSetA.
+		
+		
 	\subsection{Перевод в список и обратно, свертка и фильтрация}
+		\subsubsection{Перевод упорядоченного множества в список}
+			
+			
+		\subsubsection{Перевод списка в упорядоченное множество}
+		\subsubsection{Свертка}
+		\subsubsection{Фильтрация}
+		
 	\subsection{Объединение, пересечение, разность}
 
 
