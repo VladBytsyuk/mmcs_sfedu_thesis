@@ -734,12 +734,56 @@ is_disjoint(OSetA, {Key, _, Left, Right}) ->
 		
 	\subsection{Перевод в список и обратно, свертка и фильтрация}
 		\subsubsection{Перевод упорядоченного множества в список}
-			
+			\begin{lstlisting}
+to_list({nil, black, nil, nil}) ->
+	[];
+			\end{lstlisting}
+			Пустое множество переводится в пустой список.
+			\begin{lstlisting}
+to_list({Key, _, Left, Right}) ->
+	to_list(Left) ++ [Key] ++ to_list(Right).
+			\end{lstlisting}
+			Для сохранения упорядоченности в список переводится левое поддерево, потом 
+			добавляется корневое значение, а затем в список переводится правое поддерево.
 			
 		\subsubsection{Перевод списка в упорядоченное множество}
+			\begin{lstlisting}
+from_list(List) ->
+	lists:foldl(fun(Elem, OSet) -> add_element(Elem, OSet) end, new(), List).
+			\end{lstlisting}			
+			Перевод списка в упорядоченное множество реализуется с помощью стандартной 
+			функции свертки списка и функции добавления элемета в множество. К каждому 
+			элементу списка List, применяется функция fun(Elem, OSet) где Elem - элемент
+			List, а в качестве OSet изначально берется пустое множество.
+			
 		\subsubsection{Свертка}
-		\subsubsection{Фильтрация}
+			Свертка fold(Fun, Acc, OSet) применяет к каждому элементу упорядоченного
+			множества OSet функцию Fun(Elem, Acc) и возвращает итоговое значение Acc.
+			\begin{lstlisting}
+fold(_, Acc, {nil, black, nil, nil}) ->
+	Acc;	
+			\end{lstlisting}
+			Если свертка применяется к пустому множеству, то просто возвращается Acc.
+			\begin{lstlisting}
+fold(Fun, Acc, {Key, _, Left, Right}) ->
+	Fun(Fun(Key, fold(Fun, Acc, Left)), fold(Fun, Acc, Right)).
+			\end{lstlisting}
+			Если же свертка применяется к не пустому множеству, то Fun применяется к левому, 
+			а затем и к правому поддереву.
 		
+		\subsubsection{Фильтрация}
+			Фильтрация filter(Pred, OSet) применяет к каждому элементу OSet предикат Pred, и 
+			возвращает упорядоченное множество элементов из OSet удовлетворяющих Pred.
+			\begin{lstlisting}
+filter(Pred, OSet) ->
+	OSetList = to_list(OSet),
+	FilteredList = lists:filter(Pred, OSetList),
+	from_list(FilteredList).	
+			\end{lstlisting}
+			Упорядоченное множество переводится в список, список фильтруется с помощью стандартной 
+			функции, а затем результат переводится из списка обратно в упорядоченное множество.
+			
+			
 	\subsection{Объединение, пересечение, разность}
 
 
