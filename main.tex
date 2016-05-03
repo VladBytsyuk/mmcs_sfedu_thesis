@@ -785,8 +785,107 @@ filter(Pred, OSet) ->
 			
 			
 	\subsection{Объединение, пересечение, разность}
+		Реализации операций объединения, пересечения и разности отличаются друг от друга, для 
+		достижения лучшей скорости.
+		
+		\subsubsection{Объединение}
+			Операция объединения реализована рекурсивно. 
+			\begin{lstlisting}			
+union(OSetA, {nil, black, nil, nil}) ->
+	OSetA;
+			\end{lstlisting}
+			Объединением упорядоченного множества OSetA с пустым, будет упорядоченное множество OSetA.
+			\begin{lstlisting}
+union(OSetA, {Key, _, Left, Right}) ->
+	union(union(add_element(Key, OSetA), Left), Right).
+			\end{lstlisting}
+			Для объединения упорядоченных множеств OSetA и OSetB, во множество OSetA добавляется корневой 
+			элемент OSetB, а после применяется операция объединения OSetA к левому и правому поддереву OSetB.  
+		
+			Для объединения более чем двух упорядоченных множеств используется функция объединения от списка
+			упорядоченных множеств.
+			\begin{lstlisting}
+union([OSet1, OSet2 | []]) ->
+	union(OSet1, OSet2);
+			\end{lstlisting}
+			Если в списке всего два упорядоченных множества, то использовать операцию объединения от двух 
+			упорядоченных множеств.
+			\begin{lstlisting}
+union([OSet1, OSet2 | OSetsListTail]) ->
+	OSetUnion = union(OSet1, OSet2),
+	union([OSetUnion | OSetsListTail]).
+			\end{lstlisting}
+			В противном случае, заменить в исходном списке два первых упорядоченных множества
+			их объединением и найти объединение нового списка.
+				
+		\subsubsection{Пересечение}
+			Операция пересечения реализована перебором одного из упорядоченных множеств.
+			\begin{lstlisting}
+intersection(OSetA, OSetB) ->
+	intersection(OSetA, OSetB, {nil, black, nil, nil}).
+			\end{lstlisting}
+			При первом вызове операции пересечения для упорядоченных множеств OSetA и OSetB
+			вызывается функция пересечения с пустым аккумулятором.
+			\begin{lstlisting}	
+intersection({nil, black, nil, nil}, _, Acc) ->
+	Acc;
+			\end{lstlisting}
+			При пересечении любого упорядоченного множества с пустым множеством необходимо вернуть аккумулятор.
+			\begin{lstlisting}	
+intersection(OSetA, OSetB, Acc) ->
+	OSetALeft = min(OSetA),
+	OSetANew = del_element(OSetALeft, OSetA),
+	IsElem = is_element(OSetALeft, OSetB),
+	if 
+		IsElem =:= true  ->	AccNew = add_element(OSetALeft, Acc),
+						   	intersection(OSetANew, OSetB, AccNew);
+		
+		IsElem =:= false -> intersection(OSetANew, OSetB, Acc)
+	end.
+			\end{lstlisting}
+			В противном случае удаляем из упорядоченного множества OSetA минимальный элемент, и если он 
+			принадлежит еще и множеству OSetB, то добавляем его в аккумулятор, иначе находим пересечение 
+			нового упорядоченного множества OSetA и неизмененного OSetB.
+			
+			Функция пересечения более чем двух упорядоченных множеств реализуется аналогично с объединением:
+			\begin{lstlisting}
+intersection([OSet1, OSet2 | []]) ->
+	intersection(OSet1, OSet2);
 
+intersection([OSet1, OSet2 | OSetsListTail]) ->
+	OSetIntersection = intersection(OSet1, OSet2),
+	intersection([OSetIntersection | OSetsListTail]).
+			\end{lstlisting}
+			
+		\subsubsection{Разность}
+			Операция разности двух упорядоченных множеств, как и операция пересечения, реализована 
+			перебором одного из упорядоченных множеств.
+			\begin{lstlisting}
+subtract(OSetA, {nil, black, nil, nil}) ->
+	OSetA;
+			\end{lstlisting}
+			Вычитание из упорядоченного множества OSetA пустого множества даст упорядоченное множество OSetA.
+			\begin{lstlisting}
+subtract(OSetA, OSetB) ->
+	OSetBLeft = min(OSetB),
+	OSetBNew = del_element(OSetBLeft, OSetB),
+	IsElem = is_element(OSetBLeft, OSetA),
+	if 
+		IsElem =:= true  ->  OSetANew = del_element(OSetBLeft, OSetA),
+						     subtract(OSetANew, OSetBNew);
 
+		IsElem =:= false ->  subtract(OSetA, OSetBNew)
+	end.	 	
+			\end{lstlisting}
+			Если же из упорядоченного множества OSetA вычитаем непустое упорядоченное множество OSetB,
+			то удаляем из упорядоченного множества OSetB минимальный элемент, и если он 
+			принадлежит еще и множеству OSetA, то удаляем его из множества OSetA и вычитаем из нового
+			упорядоченного множества OSetA новое упорядоченное множество OSetB, иначе вычитаем из неизмененного
+			упорядоченного множества OSetA новое упорядоченное множество OSetB.
+			
+			
+			
+			
 \section{Сравнение с модулями sets и ordsets}
 	\subsection{Вставка и удаление}
 	\subsection{Логические функции}
