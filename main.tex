@@ -74,9 +74,9 @@ Y = 6 * 7.
 			Кортежи могут быть вложенными друг в друга.
 			\begin{lstlisting}
 {date,
-	{day, 1},
-	{month, september},
-	{year, 2012}
+    {day, 1},
+    {month, september},
+    {year, 2012}
 }.
 			\end{lstlisting}
 
@@ -285,12 +285,12 @@ area({rectangle, 2, 3}).
 
 			\begin{lstlisting}
 add_element(Key, Tree) ->
-	make_black(ins(Key, Tree)).
+    make_black(ins(Key, Tree)).
 			\end{lstlisting}
 			где
 			\begin{lstlisting}
 make_black({Key, _, Left, Right}) ->
-	{Key, black, Left, Right}.
+    {Key, black, Left, Right}.
 			\end{lstlisting}
 			окрашивает узел в черный цвет вне зависимости от того, какого цвета он был раньше.
 	
@@ -307,7 +307,7 @@ ins(Key, {nil, black, nil, nil}) ->
 			значение Key красного цвета.
 		
 			\begin{lstlisting}
-ins(Key, {Key, Color, Left, Right})	->
+ins(Key, {Key, Color, Left, Right}) ->
     {Key, Color, Left, Right};
 			\end{lstlisting}
 			если функция вызвана для дерева, в котором существует значение Key, то 
@@ -315,14 +315,14 @@ ins(Key, {Key, Color, Left, Right})	->
 			
 			\begin{lstlisting}
 ins(Key, {Key1, Color, Left, Right}) when Key < Key1 ->
-	balance({Key1, Color, ins(Key, Left), Right});
+    balance({Key1, Color, ins(Key, Left), Right});
 			\end{lstlisting}
 			если значение необходимо вставить в левое поддерево, то вызвать функцию для 
 			левого поддерева и сбалансировать текущее дерево. Аналогично и для правого 
 			поддерева:
 			\begin{lstlisting}
 ins(Key, {Key1, Color, Left, Right}) when Key > Key1 ->
-	balance({Key1, Color, Left, ins(Key, Right)}).
+    balance({Key1, Color, Left, ins(Key, Right)}).
 			\end{lstlisting}
 			
 			Функция balance выполняющая балансировку дерева реализует 4 случая нарушения 
@@ -330,8 +330,14 @@ ins(Key, {Key1, Color, Left, Right}) when Key > Key1 ->
 			
 			Случай 1.
 			\begin{lstlisting}
-balance({Key1, black, Left1, {Key2, red, Left2, {Key3, red, Left3, Right3}}}) ->    
-	{Key2, red, {Key1, black, Left1, Left2}, {Key3, black, Left3, Right3}};		    
+balance({Key1, 
+         black, 
+         Left1, 
+         {Key2, red, Left2, {Key3, red, Left3, Right3}}}) ->    
+    {Key2, 
+     red, 
+     {Key1, black, Left1, Left2}, 
+     {Key3, black, Left3, Right3}};		    
 			\end{lstlisting}
 			\begin{figure}[H]
 				\centering
@@ -341,8 +347,15 @@ balance({Key1, black, Left1, {Key2, red, Left2, {Key3, red, Left3, Right3}}}) ->
 			
 			Случай 2.
 			\begin{lstlisting}
-balance({Key1, black, Left1, {Key2, red, {Key3, red, Left3, Right3}, Right2}}) ->   
-	{Key3, red, {Key1, black, Left1, Left3}, {Key2, black, Right3, Right2}};	    
+balance({Key1, 
+         black, 
+         Left1, 
+         {Key2, red, {Key3, red, Left3, Right3}, 
+         Right2}}) ->   
+    {Key3, 
+     red, 
+     {Key1, black, Left1, Left3}, 
+     {Key2, black, Right3, Right2}};	    
 			\end{lstlisting} 
 			\begin{figure}[H]
 				\centering
@@ -352,8 +365,14 @@ balance({Key1, black, Left1, {Key2, red, {Key3, red, Left3, Right3}, Right2}}) -
 			
 			Случай 3.
 			\begin{lstlisting}
-balance({Key1, black, {Key2, red, {Key3, red, Left3, Right3}, Right2}, Right1}) ->  
-	{Key2, red, {Key3, black, Left3, Right3}, {Key1, black, Right2, Right1}};	    
+balance({Key1, 
+         black, 
+         {Key2, red, {Key3, red, Left3, Right3}, Right2}, 
+         Right1}) ->  
+    {Key2, 
+     red, 
+     {Key3, black, Left3, Right3}, 
+     {Key1, black, Right2, Right1}};	    
 			\end{lstlisting}
 			\begin{figure}[H]
 				\centering
@@ -363,8 +382,14 @@ balance({Key1, black, {Key2, red, {Key3, red, Left3, Right3}, Right2}, Right1}) 
 			
 			Случай 4.
 			\begin{lstlisting}
-balance({Key1, black, {Key2, red, Left2, {Key3, red, Left3, Right3}}, Right1}) ->   
-	{Key3, red, {Key2, black, Left2, Left3}, {Key1, black, Right3, Right1}};	    
+balance({Key1, 
+         black, 
+         {Key2, red, Left2, {Key3, red, Left3, Right3}}, 
+         Right1}) ->   
+    {Key3, 
+     red, 
+     {Key2, black, Left2, Left3}, 
+     {Key1, black, Right3, Right1}};	    
 			\end{lstlisting}
 			\begin{figure}[H]
 				\centering
@@ -375,7 +400,7 @@ balance({Key1, black, {Key2, red, Left2, {Key3, red, Left3, Right3}}, Right1}) -
 			Случай 5. Красно-черные свойства не нарушены.
 			\begin{lstlisting}
 balance(Tree) -> 
-	Tree.	
+    Tree.	
 			\end{lstlisting}
 			
 		\subsubsection{Удаление}
@@ -392,10 +417,10 @@ balance(Tree) ->
 			Реализуется арифметика цветов следующей функцией добавления цвета:
 			\begin{lstlisting}
 addBlack({Key, red, Left, Right}) ->
-	{Key, black, Left, Right};
+    {Key, black, Left, Right};
 	
-addBlack({Key, black, Left, Right})	->
-	{Key, doubleBlack, Left, Right}.			
+addBlack({Key, black, Left, Right}) ->
+    {Key, doubleBlack, Left, Right}.			
 			\end{lstlisting}
 			Функция вычитания цвета не используется.
 			
@@ -416,15 +441,15 @@ addBlack({Key, black, Left, Right})	->
 			
 			\begin{lstlisting}
 del_element(Key, Tree) -> 
-	nilFix(make_black(del(Key, Tree))).
+    nilFix(make_black(del(Key, Tree))).
 			\end{lstlisting}
 			где 
 			\begin{lstlisting}
 nilFix({nil, doubleBlack, nil, nil}) ->
-	{nil, black, nil, nil};
+    {nil, black, nil, nil};
 	
 nilFix(Tree) ->
-	Tree.					
+    Tree.					
 			\end{lstlisting}	
 			если агрументом является двойной черный лист преобразует его в черный,
 			а если аргумент - дерево, то возвращает его без изменений.
@@ -433,41 +458,43 @@ nilFix(Tree) ->
 			а затем вызывает функцию балансировки дерева delFix. 
 			\begin{lstlisting}
 del(_, {nil, black, nil, nil}) ->
-	{nil, black, nil, nil};
+    {nil, black, nil, nil};
 			\end{lstlisting}
 			если производится попытка удалить узел из пустого дерева, то вернуть пустое дерево.
 			\begin{lstlisting}
 del(Key, {Key, red, Left, {nil, black, nil, nil}}) ->
-	Left;
+    Left;
 	
-del(Key, {Key, red, {nil, black, nil, nil}, Right})	->
-	Right;
+del(Key, {Key, red, {nil, black, nil, nil}, Right}) ->
+    Right;
 			\end{lstlisting}
 			если цвет удаляемого узла красный, и у него есть только один потомок, то
 			вернуть потомка.
 			\begin{lstlisting}
 del(Key, {Key, black, Left, {nil, black, nil, nil}}) ->
-	addBlack(Left);
+    addBlack(Left);
 		
 del(Key, {Key, black, {nil, black, nil, nil}, Right}) ->
-	addBlack(Right);
+    addBlack(Right);
 			\end{lstlisting}
 			если цвет удаляемого узла черный, и у него есть только один потомок, то
 			вернуть потомка с добавленным цветом для сохранения 5 красно-черного свойства.
 			\begin{lstlisting}
 del(Key, {Key, Color, Left, Right})	->
-	delFix({max(Left), Color, del(max(Left), Left), Right});
+    delFix({max(Left), Color, del(max(Left), Left), Right});
 			\end{lstlisting}
 			если у удаляемого узла 2 потомка, то вернуть дерево в котором вместо удаленного 
 			узла будет узел с максимальным значением из его левого потомка, цвет удаленного узла, 
 			левый потомок без своего максимального значения, а правый потомок останется без изменений.
 			Результат необходимо сбалансировать.
 			\begin{lstlisting}
-del(Key, {KeyTree, ColorTree, LeftTree, RightTree}) when Key < KeyTree 	->
-	delFix({KeyTree, ColorTree, del(Key, LeftTree), RightTree});
+del(Key, {KeyTree, ColorTree, LeftTree, RightTree}) 
+    when Key < KeyTree ->
+    delFix({KeyTree, ColorTree, del(Key, LeftTree), RightTree});
 			
-del(Key, {KeyTree, ColorTree, LeftTree, RightTree}) when Key > KeyTree 	->	
-	delFix({KeyTree, ColorTree, LeftTree, del(Key, RightTree)}).
+del(Key, {KeyTree, ColorTree, LeftTree, RightTree}) 
+    when Key > KeyTree ->	
+    delFix({KeyTree, ColorTree, LeftTree, del(Key, RightTree)}).
 			\end{lstlisting}
 			рекурсивный поиск удаляемого узла в дереве и балансировка дерева после 
 			удаления.
@@ -481,20 +508,20 @@ del(Key, {KeyTree, ColorTree, LeftTree, RightTree}) when Key > KeyTree 	->
 			\end{figure}
 			\begin{lstlisting}
 delFix({Key2, 														   				
-	    Color2, 													   				
-	    {Key1, doubleBlack, Left1, Right1}, 						   				
-	    {Key3, black, {Left3Key,  black, Left3Left,  Left3Right}, 	   				
-	                  {Right3Key, black, Right3Left, Right3Right}	   				
-	    }															   				
-	   })															   				
+        Color2, 													   				
+        {Key1, doubleBlack, Left1, Right1}, 						   				
+        {Key3, black, {Left3Key, black, 
+                       Left3Left, Left3Right}, 	   				
+                      {Right3Key, black, 
+                       Right3Left, Right3Right}})
 ->																	   				
-	addBlack({Key2, 												   				
-	          Color2, 												   				
-	          nilFix({Key1, black, Left1, Right1}), 				   				
-	          {Key3, red, {Left3Key,  black, Left3Left,  Left3Right},  				
-	                      {Right3Key, black, Right3Left, Right3Right}  				
-	          }     												   				
-	         });				
+    addBlack({Key2, 												   				
+              Color2, 												   				
+              nilFix({Key1, black, Left1, Right1}), 				   				
+              {Key3, red, {Left3Key, black, 
+                           Left3Left, Left3Right},  				
+                          {Right3Key, black, 
+                           Right3Left, Right3Right}}});				
 			\end{lstlisting}
 			
 			\begin{figure}[H]
@@ -504,18 +531,21 @@ delFix({Key2,
 			\end{figure}
 			\begin{lstlisting}
 delFix({Key2, 														   				
-	    Color2, 													   				
-	    {Key1, black, {Left1Key,  black, Left1Left,  Left1Right}, 	   				
-	                  {Right1Key, black, Right1Left, Right1Right}},    				
-	    {Key3, doubleBlack, Left3, Right3}							   				
-	   }) 															   				
+        Color2, 													   				
+        {Key1, black, {Left1Key,  black, 
+                       Left1Left,  Left1Right}, 	   				
+                      {Right1Key, black, 
+                       Right1Left, Right1Right}},    				
+        {Key3, doubleBlack, Left3, Right3}}) 															   				
 ->																	   				
-	addBlack({Key2, 												   				
-	          Color2, 												   				
-	          {Key1, red, {Left1Key,  black, Left1Left,  Left1Right},  				
-	                      {Right1Key, black, Right1Left, Right1Right}},				
-	          nilFix({Key3, black, Left3, Right3})					   				
-	         });													   				
+    addBlack({Key2, 												   				
+              Color2, 											   				
+              {Key1, red, {Left1Key,  black, 
+                           Left1Left,  Left1Right},  				
+                          {Right1Key, black, 
+                           Right1Left, Right1Right}},				
+              nilFix({Key3, black, Left3, Right3})					   				
+             });													   				
 			\end{lstlisting}
 			
 			\begin{figure}[H]
@@ -525,19 +555,19 @@ delFix({Key2,
 			\end{figure}
 			\begin{lstlisting}
 delFix({Key2, 														   											
-	    black, 														   				
-	    {Key1, doubleBlack, Left1, Right1}, 						   				
-	    {Key3, red, {Left3Key,  black, Left3Left,  Left3Right}, 	   				
-	                {Right3Key, black, Right3Left, Right3Right}		   				
-	    }															   				
-	   })															   				
+        black, 														   				
+        {Key1, doubleBlack, Left1, Right1}, 						   				
+        {Key3, red, {Left3Key,  black, 
+                     Left3Left,  Left3Right}, 	   				
+                    {Right3Key, black, 
+                     Right3Left, Right3Right}}})															   				
 ->																	   				
-	{Key3, 															   				
-	 black, 														   				
-	 delFix({Key2, red, {Key1,     doubleBlack, Left1, 	   Right1},    				
-	 					{Left3Key, black, 		Left3Left, Left3Right}}),			 
-	 {Right3Key, black, Right3Left, Right3Right} 									
-	};																				
+    {Key3, 															   				
+     black, 														   				
+     delFix({Key2, red, 
+             {Key1, doubleBlack, Left1, Right1},    				
+             {Left3Key, black, Left3Left, Left3Right}}),			 
+     {Right3Key, black, Right3Left, Right3Right}};																				
 			\end{lstlisting}
 			
 			\begin{figure}[H]
@@ -547,18 +577,20 @@ delFix({Key2,
 			\end{figure}
 			\begin{lstlisting}
 delFix({Key2,																		
-   	    black,																		
-   	    {Key1, red, {Left1Key,  black, Left1Left,  Left1Right},						
-   	                {Right1Key, black, Right1Left, Right1Right}},					
-   	    {Key3, doubleBlack, Left3, Right3}											
-   	   })																			
+        black,																		
+        {Key1, red, {Left1Key,  black, 
+                     Left1Left,  Left1Right},						
+                    {Right1Key, black, 
+                     Right1Left, Right1Right}},					
+        {Key3, doubleBlack, Left3, Right3}})																			
 ->																					
-	{Key1,																			
-	 black,																										
-	 {Left1Key,  black, Left1Left,  Left1Right},									
-	 delFix({Key2, red, {Right1Key, black, 		 Right1Left, Right1Right},			
-	 					{Key3, 		doubleBlack, Left3, 	 Right3}})				
-	};																				
+    {Key1,																			
+     black,																										
+     {Left1Key,  black, Left1Left,  Left1Right},									
+     delFix({Key2, red, {Right1Key, black, 
+                         Right1Left, Right1Right},			
+ 					    {Key3, doubleBlack, 
+ 					     Left3, Right3}})};																				
 			\end{lstlisting}
 			
 			\begin{figure}[H]
@@ -568,20 +600,20 @@ delFix({Key2,
 			\end{figure}
 			\begin{lstlisting}
 delFix({Key2,																		
-		Color2,																		
-		{Key1, doubleBlack, Left1, Right1},											
-		{Key4, black, {Key3, red, Left3, Right3}, 									
-					  {Right4Key, black, Right4Left, Right4Right}}					
-	   })																			
+        Color2,																		
+        {Key1, doubleBlack, Left1, Right1},											
+        {Key4, black, {Key3, red, 
+                       Left3, Right3}, 									
+                      {Right4Key, black, 
+                       Right4Left, Right4Right}}})																			
 ->																					
-	delFix({Key2,																	
-		    Color2,																	
-		    {Key1, doubleBlack, Left1, Right1},										
-		    {Key3, black, Left3, 													
-		    			  {Key4, red, Right3,										 
-		    						 {Right4Key, black, Right4Left, 				
-		    						 					Right4Right}}}				
-	});																				
+    delFix({Key2,																	
+            Color2,																	
+            {Key1, doubleBlack, Left1, Right1},										
+            {Key3, black, 
+             Left3, {Key4, red, 
+                     Right3, {Right4Key, black, 
+                              Right4Left, Right4Right}}});																				
 			\end{lstlisting}
 			
 			\begin{figure}[H]
@@ -591,21 +623,21 @@ delFix({Key2,
 			\end{figure}
 			\begin{lstlisting}
 delFix({Key3,																		
-		Color3,																		
-		{Key1, black, {Left1Key, black, Left1Left, Left1Right}, 					
-					  {Key2, 	 red,   Left2, 	   Right2    }},					
-		{Key4, doubleBlack, Left4, Right4}											
-	   })																			
+        Color3,																		
+        {Key1, black, {Left1Key, black, 
+                       Left1Left, Left1Right}, 					
+                      {Key2, red, 
+                       Left2, Right2}},					
+        {Key4, doubleBlack, Left4, Right4}})																			
 ->																					
-	delFix({Key3, 																	
-			Color3,																	
-			{Key2, black, {Key1, 													
-						   red, 													
-						   {Left1Key, black, Left1Left, Left1Right},				
-						   Left2},													
-						  Right2},													
-			{Key4, doubleBlack, Left4, Right4}										
-	});																				
+    delFix({Key3, 																	
+            Color3,																	
+            {Key2, black, 
+             {Key1, red, 
+              {Left1Key, black, Left1Left, Left1Right}, 
+              Left2}, 
+             Right2},													
+            {Key4, doubleBlack, Left4, Right4}});																				
 			\end{lstlisting}
 			
 			\begin{figure}[H]
@@ -615,20 +647,18 @@ delFix({Key3,
 			\end{figure}
 			\begin{lstlisting}
 delFix({Key2,																		
-		Color2,																		
-		{Key1, doubleBlack, Left1, Right1},											
-		{Key3, black, Left3,														
-					  {Key4, red, Left4, 											
-					 			  {Right4Key, black, Right4Left, Right4Right}}}		
-	   })																			
+        Color2,																		
+        {Key1, doubleBlack, Left1, Right1},											
+        {Key3, black, 
+         Left3,	{Key4, red, 
+                 Left4, {Right4Key, black, 
+                 		 Right4Left, Right4Right}}}})																			
 ->																					
-	{Key3,																			
-	 Color2,																		
-	 {Key2, black, nilFix({Key1, black, Left1, Right1}),							
-	               Left3},															
-	 {Key4, black, Left4,															
-				   {Right4Key, black, Right4Left, Right4Right}}						
-	};																				
+    {Key3,																			
+     Color2,																		
+     {Key2, black, nilFix({Key1, black, Left1, Right1}), Left3},															
+	 {Key4, black, 
+	  Left4, {Right4Key, black, Right4Left, Right4Right}}};																				
 			\end{lstlisting}
 			
 			\begin{figure}[H]
@@ -638,22 +668,24 @@ delFix({Key2,
 			\end{figure}
 			\begin{lstlisting}
 delFix({Key3,																		
-		Color3,																		
-		{Key2, black, {Key1, 														
-					   red, 														
-					   {Left1Key, black, Left1Left, Left1Right},					
-					   Right1}, 													
-					  Right2},														
-		{Key4, doubleBlack, Left4, Right4}											
-	   })																			
+        Color3,																		
+        {Key2, black, 
+         {Key1, red, 
+          {Left1Key, black, 
+          Left1Left, Left1Right}, 
+          Right1}, 													
+		 Right2},														
+		{Key4, doubleBlack, Left4, Right4}})																			
 ->																					
-	{Key2,																			
-	 Color3,																		
-	 {Key1, black, {Left1Key, black, Left1Left, Left1Right},						
-	 			   Right1},															
-	 {Key3, black, Right2,															
-	 			   nilFix({Key4, black, Left4, Right4})}							
-	};																				
+    {Key2,																			
+     Color3,																		
+     {Key1, black, 
+      {Left1Key, black, 
+       Left1Left, Left1Right}, 
+      Right1},															
+	 {Key3, black, 
+	  Right2, 
+	  nilFix({Key4, black, Left4, Right4})}};																				
 			\end{lstlisting}
 			
 			
@@ -673,20 +705,22 @@ delFix({Key3,
 			значение элемента, а OSet - упорядоченное множество.
 			\begin{lstlisting}
 is_element(_,  {nil, black, nil, nil}) ->
-	false;				
+    false;				
 			\end{lstlisting}
 			Пустому множеству не может принадлежать никакой элемент.
 			\begin{lstlisting}
 is_element(Elem, {Elem, _, _, _}) ->
-	true;
+    true;
 			\end{lstlisting}
 			Если найден узел с искомым значением, то элемент принадлежит множеству.
 			\begin{lstlisting}
 is_element(Elem, {CurrElem, _, Left, Right}) ->		
-	if
-		Elem < CurrElem -> is_element(Elem, Left);
-		Elem > CurrElem -> is_element(Elem, Right)
-	end.	
+    if
+        Elem < CurrElem -> 
+            is_element(Elem, Left);
+        Elem > CurrElem -> 
+            is_element(Elem, Right)
+    end.	
 			\end{lstlisting}
 			Поиск элемента в дереве реализующем упорядоченное множество.
 			
@@ -696,16 +730,20 @@ is_element(Elem, {CurrElem, _, Left, Right}) ->
 			подмножество OSetB.
 			\begin{lstlisting}
 is_subset({nil, black, nil, nil}, _) ->
-	true;	
+    true;	
 			\end{lstlisting}
 			Пустое множество является подмножеством любого множества.	
 			\begin{lstlisting}
 is_subset({Key, _, Left, Right}, OSetB) ->
-	IsElem = is_element(Key, OSetB),
-	if
-		IsElem  -> is_subset(Left, OSetB) and is_subset(Right, OSetB);
-		true 	-> false
-	end.
+    IsElem = is_element(Key, OSetB),
+    if
+        IsElem -> 
+            is_subset(Left, OSetB) 
+            and 
+            is_subset(Right, OSetB);
+        true -> 
+            false
+    end.
 			\end{lstlisting}
 			Проверяется принадлежность корня OSetA множеству OSetB, и если корень
 			принадлежит OSetB, то проверяется принадлежность левого и правого поддерева
@@ -716,15 +754,19 @@ is_subset({Key, _, Left, Right}, OSetB) ->
 			is\_disjoint(OSetA, OSetB), где OSetA и OSetB - упорядоченные множества.
 			\begin{lstlisting}
 is_disjoint(_, {nil, black, nil, nil}) ->
-	true;	
+    true;	
 			\end{lstlisting}
 			Никакое множество не пересекается с пустым.
 			\begin{lstlisting}
 is_disjoint(OSetA, {Key, _, Left, Right}) ->
-	IsElem = is_element(Key, OSetA),
-	if
-		IsElem	-> false;
-		true	-> is_disjoint(OSetA, Left) and is_disjoint(OSetA, Right)
+    IsElem = is_element(Key, OSetA),
+    if
+        IsElem -> 
+            false;
+        true -> 
+            is_disjoint(OSetA, Left) 
+            and 
+            is_disjoint(OSetA, Right)
 	end.
 			\end{lstlisting}
 			Проверяется принадлежность корня OSetB множеству OSetA, и если корень
@@ -736,12 +778,12 @@ is_disjoint(OSetA, {Key, _, Left, Right}) ->
 		\subsubsection{Перевод упорядоченного множества в список}
 			\begin{lstlisting}
 to_list({nil, black, nil, nil}) ->
-	[];
+    [];
 			\end{lstlisting}
 			Пустое множество переводится в пустой список.
 			\begin{lstlisting}
 to_list({Key, _, Left, Right}) ->
-	to_list(Left) ++ [Key] ++ to_list(Right).
+    to_list(Left) ++ [Key] ++ to_list(Right).
 			\end{lstlisting}
 			Для сохранения упорядоченности в список переводится левое поддерево, потом 
 			добавляется корневое значение, а затем в список переводится правое поддерево.
@@ -749,7 +791,11 @@ to_list({Key, _, Left, Right}) ->
 		\subsubsection{Перевод списка в упорядоченное множество}
 			\begin{lstlisting}
 from_list(List) ->
-	lists:foldl(fun(Elem, OSet) -> add_element(Elem, OSet) end, new(), List).
+    lists:foldl(fun(Elem, OSet) -> 
+                    add_element(Elem, OSet) 
+                end, 
+                new(), 
+                List).
 			\end{lstlisting}			
 			Перевод списка в упорядоченное множество реализуется с помощью стандартной 
 			функции свертки списка и функции добавления элемета в множество. К каждому 
@@ -761,12 +807,12 @@ from_list(List) ->
 			множества OSet функцию Fun(Elem, Acc) и возвращает итоговое значение Acc.
 			\begin{lstlisting}
 fold(_, Acc, {nil, black, nil, nil}) ->
-	Acc;	
+    Acc;	
 			\end{lstlisting}
 			Если свертка применяется к пустому множеству, то просто возвращается Acc.
 			\begin{lstlisting}
 fold(Fun, Acc, {Key, _, Left, Right}) ->
-	Fun(Fun(Key, fold(Fun, Acc, Left)), fold(Fun, Acc, Right)).
+    Fun(Fun(Key, fold(Fun, Acc, Left)), fold(Fun, Acc, Right)).
 			\end{lstlisting}
 			Если же свертка применяется к не пустому множеству, то Fun применяется к левому, 
 			а затем и к правому поддереву.
@@ -776,9 +822,9 @@ fold(Fun, Acc, {Key, _, Left, Right}) ->
 			возвращает упорядоченное множество элементов из OSet удовлетворяющих Pred.
 			\begin{lstlisting}
 filter(Pred, OSet) ->
-	OSetList = to_list(OSet),
-	FilteredList = lists:filter(Pred, OSetList),
-	from_list(FilteredList).	
+    OSetList = to_list(OSet),
+    FilteredList = lists:filter(Pred, OSetList),
+    from_list(FilteredList).	
 			\end{lstlisting}
 			Упорядоченное множество переводится в список, список фильтруется с помощью стандартной 
 			функции, а затем результат переводится из списка обратно в упорядоченное множество.
@@ -792,12 +838,12 @@ filter(Pred, OSet) ->
 			Операция объединения реализована рекурсивно. 
 			\begin{lstlisting}			
 union(OSetA, {nil, black, nil, nil}) ->
-	OSetA;
+    OSetA;
 			\end{lstlisting}
 			Объединением упорядоченного множества OSetA с пустым, будет упорядоченное множество OSetA.
 			\begin{lstlisting}
 union(OSetA, {Key, _, Left, Right}) ->
-	union(union(add_element(Key, OSetA), Left), Right).
+    union(union(add_element(Key, OSetA), Left), Right).
 			\end{lstlisting}
 			Для объединения упорядоченных множеств OSetA и OSetB, во множество OSetA добавляется корневой 
 			элемент OSetB, а после применяется операция объединения OSetA к левому и правому поддереву OSetB.  
@@ -806,14 +852,14 @@ union(OSetA, {Key, _, Left, Right}) ->
 			упорядоченных множеств.
 			\begin{lstlisting}
 union([OSet1, OSet2 | []]) ->
-	union(OSet1, OSet2);
+    union(OSet1, OSet2);
 			\end{lstlisting}
 			Если в списке всего два упорядоченных множества, то использовать операцию объединения от двух 
 			упорядоченных множеств.
 			\begin{lstlisting}
 union([OSet1, OSet2 | OSetsListTail]) ->
-	OSetUnion = union(OSet1, OSet2),
-	union([OSetUnion | OSetsListTail]).
+    OSetUnion = union(OSet1, OSet2),
+    union([OSetUnion | OSetsListTail]).
 			\end{lstlisting}
 			В противном случае, заменить в исходном списке два первых упорядоченных множества
 			их объединением и найти объединение нового списка.
@@ -822,26 +868,27 @@ union([OSet1, OSet2 | OSetsListTail]) ->
 			Операция пересечения реализована перебором одного из упорядоченных множеств.
 			\begin{lstlisting}
 intersection(OSetA, OSetB) ->
-	intersection(OSetA, OSetB, {nil, black, nil, nil}).
+    intersection(OSetA, OSetB, {nil, black, nil, nil}).
 			\end{lstlisting}
 			При первом вызове операции пересечения для упорядоченных множеств OSetA и OSetB
 			вызывается функция пересечения с пустым аккумулятором.
 			\begin{lstlisting}	
 intersection({nil, black, nil, nil}, _, Acc) ->
-	Acc;
+    Acc;
 			\end{lstlisting}
 			При пересечении любого упорядоченного множества с пустым множеством необходимо вернуть аккумулятор.
 			\begin{lstlisting}	
 intersection(OSetA, OSetB, Acc) ->
-	OSetALeft = min(OSetA),
-	OSetANew = del_element(OSetALeft, OSetA),
-	IsElem = is_element(OSetALeft, OSetB),
-	if 
-		IsElem =:= true  ->	AccNew = add_element(OSetALeft, Acc),
-						   	intersection(OSetANew, OSetB, AccNew);
-		
-		IsElem =:= false -> intersection(OSetANew, OSetB, Acc)
-	end.
+    OSetALeft = min(OSetA),
+    OSetANew = del_element(OSetALeft, OSetA),
+    IsElem = is_element(OSetALeft, OSetB),
+    if 
+        IsElem =:= true -> 
+            AccNew = add_element(OSetALeft, Acc),
+            intersection(OSetANew, OSetB, AccNew);
+        IsElem =:= false -> 
+            intersection(OSetANew, OSetB, Acc)
+    end.
 			\end{lstlisting}
 			В противном случае удаляем из упорядоченного множества OSetA минимальный элемент, и если он 
 			принадлежит еще и множеству OSetB, то добавляем его в аккумулятор, иначе находим пересечение 
@@ -850,11 +897,11 @@ intersection(OSetA, OSetB, Acc) ->
 			Функция пересечения более чем двух упорядоченных множеств реализуется аналогично с объединением:
 			\begin{lstlisting}
 intersection([OSet1, OSet2 | []]) ->
-	intersection(OSet1, OSet2);
+    intersection(OSet1, OSet2);
 
 intersection([OSet1, OSet2 | OSetsListTail]) ->
-	OSetIntersection = intersection(OSet1, OSet2),
-	intersection([OSetIntersection | OSetsListTail]).
+    OSetIntersection = intersection(OSet1, OSet2),
+    intersection([OSetIntersection | OSetsListTail]).
 			\end{lstlisting}
 			
 		\subsubsection{Разность}
@@ -862,20 +909,21 @@ intersection([OSet1, OSet2 | OSetsListTail]) ->
 			перебором одного из упорядоченных множеств.
 			\begin{lstlisting}
 subtract(OSetA, {nil, black, nil, nil}) ->
-	OSetA;
+    OSetA;
 			\end{lstlisting}
 			Вычитание из упорядоченного множества OSetA пустого множества даст упорядоченное множество OSetA.
 			\begin{lstlisting}
 subtract(OSetA, OSetB) ->
-	OSetBLeft = min(OSetB),
-	OSetBNew = del_element(OSetBLeft, OSetB),
-	IsElem = is_element(OSetBLeft, OSetA),
-	if 
-		IsElem =:= true  ->  OSetANew = del_element(OSetBLeft, OSetA),
-						     subtract(OSetANew, OSetBNew);
-
-		IsElem =:= false ->  subtract(OSetA, OSetBNew)
-	end.	 	
+    OSetBLeft = min(OSetB),
+    OSetBNew = del_element(OSetBLeft, OSetB),
+    IsElem = is_element(OSetBLeft, OSetA),
+    if 
+        IsElem =:= true -> 
+            OSetANew = del_element(OSetBLeft, OSetA),
+            subtract(OSetANew, OSetBNew);
+        IsElem =:= false -> 
+            subtract(OSetA, OSetBNew)
+    end.	 	
 			\end{lstlisting}
 			Если же из упорядоченного множества OSetA вычитаем непустое упорядоченное множество OSetB,
 			то удаляем из упорядоченного множества OSetB минимальный элемент, и если он 
