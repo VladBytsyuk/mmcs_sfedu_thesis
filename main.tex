@@ -950,7 +950,7 @@ subtract(OSetA, OSetB) ->
 		
 		\begin{figure}[H]
 				\centering
-				\includegraphics[width=\textwidth]{img/tan-aus.png}
+				\includegraphics[width=\textwidth]{img/histograms/add_element.png}
 				\caption{Замер времени выполнения операции вставки}
 		\end{figure}
 		
@@ -958,7 +958,7 @@ subtract(OSetA, OSetB) ->
 		
 		\begin{figure}[H]
 				\centering
-				\includegraphics[width=\textwidth]{img/tan-aus.png}
+				\includegraphics[width=\textwidth]{img/histograms/del_element.png}
 				\caption{Замер времени выполнения операции удаления}
 		\end{figure}
 		
@@ -973,7 +973,7 @@ subtract(OSetA, OSetB) ->
 		
 		\begin{figure}[H]
 				\centering
-				\includegraphics[width=\textwidth]{img/tan-aus.png}
+				\includegraphics[width=\textwidth]{img/histograms/is_element.png}
 				\caption{Замер времени выполнения проверки на принадлежность элемента множеству}
 		\end{figure}
 		Благодаря тому, что модуль oset реализует упорядоченное множество на основе красно-черного дерева, операция
@@ -983,7 +983,7 @@ subtract(OSetA, OSetB) ->
 		
 		\begin{figure}[H]
 				\centering
-				\includegraphics[width=\textwidth]{img/tan-aus.png}
+				\includegraphics[width=\textwidth]{img/histograms/is_subset.png}
 				\caption{Замер времени выполнения проверки на то, является ли одно множество подмножеством другого}
 		\end{figure}
 		При большом объеме данных множества реализация проверки в модуле sets заметно уступает по времени 
@@ -994,7 +994,7 @@ subtract(OSetA, OSetB) ->
 		
 		\begin{figure}[H]
 				\centering
-				\includegraphics[width=\textwidth]{img/tan-aus.png}
+				\includegraphics[width=\textwidth]{img/histograms/is_disjoint.png}
 				\caption{Замер времени выполнения проверки на непересекаемость двух упорядоченных множеств}
 		\end{figure}
 		Реализация данной проверки в модуле sets при малом количестве данных работает медленнее, как и в случае 
@@ -1009,7 +1009,7 @@ subtract(OSetA, OSetB) ->
 		
 		\begin{figure}[H]
 				\centering
-				\includegraphics[width=\textwidth]{img/tan-aus.png}
+				\includegraphics[width=\textwidth]{img/histograms/to_list.png}
 				\caption{Замер времени выполнения перевода множества в список}
 		\end{figure}
 		Самой быстрой операцией перевода множества в список является реализация из модуля ordsets, так как 
@@ -1019,7 +1019,7 @@ subtract(OSetA, OSetB) ->
 		
 		\begin{figure}[H]
 				\centering
-				\includegraphics[width=\textwidth]{img/tan-aus.png}
+				\includegraphics[width=\textwidth]{img/histograms/from_list.png}
 				\caption{Замер времени выполнения перевода списка в множество}
 		\end{figure}
 		На большом объеме множества реализации из модулей oset и sets работают приблизительно одинакого.
@@ -1028,7 +1028,7 @@ subtract(OSetA, OSetB) ->
 		
 		\begin{figure}[H]
 				\centering
-				\includegraphics[width=\textwidth]{img/tan-aus.png}
+				\includegraphics[width=\textwidth]{img/histograms/fold.png}
 				\caption{Замер времени выполнения свертки}
 		\end{figure}
 		Свертка проверялась на функции сложения. Резултатом ее выполнения являлась сумма элементов множества.
@@ -1038,7 +1038,7 @@ subtract(OSetA, OSetB) ->
 
 		\begin{figure}[H]
 				\centering
-				\includegraphics[width=\textwidth]{img/tan-aus.png}
+				\includegraphics[width=\textwidth]{img/histograms/filter.png}
 				\caption{Замер времени выполнения фильтрации}
 		\end{figure}
 		Фильтрация проверялась на предикате проверяющем четность числа. Результатом ее выполнения являлось множество
@@ -1052,7 +1052,7 @@ subtract(OSetA, OSetB) ->
 		
 		\begin{figure}[H]
 				\centering
-				\includegraphics[width=\textwidth]{img/tan-aus.png}
+				\includegraphics[width=\textwidth]{img/histograms/union.png}
 				\caption{Замер времени выполнения объединеия двух множеств}
 		\end{figure}
 		На большом объеме данных реализация модуля sets уступает двум другим, потому что реализована с поможщью свертки.
@@ -1062,13 +1062,13 @@ subtract(OSetA, OSetB) ->
 		
 		\begin{figure}[H]
 				\centering
-				\includegraphics[width=\textwidth]{img/tan-aus.png}
+				\includegraphics[width=\textwidth]{img/histograms/intersection.png}
 				\caption{Замер времени выполнения пересечения двух множеств}
 		\end{figure}
 		
 		\begin{figure}[H]
 				\centering
-				\includegraphics[width=\textwidth]{img/tan-aus.png}
+				\includegraphics[width=\textwidth]{img/histograms/subtract.png}
 				\caption{Замер времени выполнения разности двух множеств}
 		\end{figure}
 		Время выполнения операций пересечения двух упорядоченных множеств и их разности в модуле oset уступает времени
