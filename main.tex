@@ -945,6 +945,7 @@ subtract(OSetA, OSetB) ->
 	
 	\subsection{Вставка и удаление}
 		В приведенных ниже временных показателях учитывается время считывания данных из файла и занесение их в структуру.
+		
 		\begin{figure}[H]
 				\centering
 				\includegraphics[width=\textwidth]{img/tan-aus.png}
@@ -952,6 +953,7 @@ subtract(OSetA, OSetB) ->
 		\end{figure}
 		
 		Аналогично и для операции удаления - время считывания чисел из файла и удаление их из структуры. 
+		
 		\begin{figure}[H]
 				\centering
 				\includegraphics[width=\textwidth]{img/tan-aus.png}
@@ -966,6 +968,7 @@ subtract(OSetA, OSetB) ->
 	\subsection{Логические функции}
 		Логические функции, такие как is\_element, is\_subset и is\_disjoint запускаются по 100 раз
 		каждая и в результат идет среднее время выполнения.
+		
 		\begin{figure}[H]
 				\centering
 				\includegraphics[width=\textwidth]{img/tan-aus.png}
@@ -999,6 +1002,7 @@ subtract(OSetA, OSetB) ->
 	\subsection{Перевод в список и обратно, свертка и фильтрация}
 		При замере времени, как и с логическими функциями, каждая функция запускается по 100 раз, а в результат идет 
 		среднее время выполнения.
+		
 		\begin{figure}[H]
 				\centering
 				\includegraphics[width=\textwidth]{img/tan-aus.png}
@@ -1039,9 +1043,34 @@ subtract(OSetA, OSetB) ->
 		список и стандартную реализацию операции фильтрации для списка.
 
 	\subsection{Объединение, пересечение, разность}
+		Операции объединения, пересечения и разности запускаются по 100 раз и в результат 
+		идет среднее время выполнения.
 		
-
-
+		\begin{figure}[H]
+				\centering
+				\includegraphics[width=\textwidth]{img/tan-aus.png}
+				\caption{Замер времени выполнения объединеия двух множеств}
+		\end{figure}
+		На большом объеме данных реализация модуля sets уступает двум другим, потому что реализована с поможщью свертки.
+		На малом объеме данных в модуле oset самая медленная реализация операции объединения двух множеств, так как
+		реализована рекурсивно. Реализация модуля ordsets в обоих случаях работает быстрее. Это происходит из-за 
+		реализации самого множества с помощью списка, и быстроты операций с ним.
+		
+		\begin{figure}[H]
+				\centering
+				\includegraphics[width=\textwidth]{img/tan-aus.png}
+				\caption{Замер времени выполнения пересечения двух множеств}
+		\end{figure}
+		
+		\begin{figure}[H]
+				\centering
+				\includegraphics[width=\textwidth]{img/tan-aus.png}
+				\caption{Замер времени выполнения разности двух множеств}
+		\end{figure}
+		Время выполнения операций пересечения двух упорядоченных множеств и их разности в модуле oset уступает времени
+		выполнения этой	же операции в модулях sets и ordsets. Длительность выполнения связана с последовательным перебором
+		всех элементов одного из множеств.
+		
 
 \section{Несколько примеров в~\LaTeX{}}
 \label{sec:examples}
