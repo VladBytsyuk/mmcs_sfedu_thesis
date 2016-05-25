@@ -6,6 +6,11 @@
     \renewcommand{\Intro}{\addchap{Введение}}%
 }
 
+\newcommand{\Task}{\addsec{Постановка задачи}}
+\ifthenelse{\value{worktype} > 1}{%
+    \renewcommand{\Intro}{\addchap{Постановка задачи}}%
+}
+
 \newcommand{\Conc}{\addsec{Заключение}}
 \ifthenelse{\value{worktype} > 1}{%
     \renewcommand{\Conc}{\addchap{Заключение}}%
