@@ -16,11 +16,8 @@ all: main.pdf
 main.pdf: main.tex
 	latexmk -pdf -pdflatex="pdflatex -interactive=nonstopmode" -use-make main.tex
 	
-	latex pres.tex
-	latex pres.tex
-	dvips -P pdf pres.dvi
-	ps2pdf14 pres.ps
-
+	pdflatex pres.tex
+	
 clean:
 	latexmk -CA
 
