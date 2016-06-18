@@ -38,18 +38,18 @@
 
 	\begin{frame}[fragile]{\LARGE \textbf{Красно-черное дерево и Erlang}}
 		\begin{figure}
-			\includegraphics[scale=0.22]{img/clause_1.png}
+			\includegraphics[scale=1]{img/tree.png}
 		\end{figure}
 		
 		\pause
 		
 		\begin{block}{Реализация на Erlang}
-			\begin{lstlisting}
-balance({X, black, a, 
-                   {Y, red, b, 
-                            {Z, red, c, d}}}) ->   
-	{Y, red, {X, black, a, b}, 
-	         {Z, black, c, d}};		   
+			\begin{lstlisting}  
+	{Y, 
+	 red, 
+	 {X, black, a, b}, 
+	 {Z, black, c, d}
+	};		   
 			\end{lstlisting}
 		\end{block}	
 	\end{frame}
