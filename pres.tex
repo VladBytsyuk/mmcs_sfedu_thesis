@@ -36,15 +36,13 @@
 	
 	% Основное содержание
 
-	\begin{frame}[fragile]{\LARGE \textbf{Красно-черное дерево и Erlang}}
+	\begin{frame}[fragile]{Красно-черное дерево и Erlang}
 		\begin{figure}
 			\includegraphics[scale=1]{img/tree.png}
 		\end{figure}
 		
-		\pause
-		
 		\begin{block}{Реализация на Erlang}
-			\begin{lstlisting}  
+																																																												\begin{lstlisting}  
 	{Y, 
 	 red, 
 	 {X, black, a, b}, 
@@ -53,6 +51,25 @@
 			\end{lstlisting}
 		\end{block}	
 	\end{frame}
+	
+	\begin{frame}[fragile]{Пример реализации проверки на то, является ли одно упорядоченное множество подмножеством другого}
+		\begin{block}{Реализация на Erlang}
+			\begin{lstlisting}[language = erlang] 	
+is_subset({nil, black, nil, nil}, _) ->
+    true;	
+	
+is_subset({Key, _, Left, Right}, OSetB) ->
+    IsElem = is_element(Key, OSetB),
+    if
+        IsElem  -> is_subset(Left, OSetB) 
+                   and 
+                   is_subset(Right, OSetB);
+        true    -> false
+    end.
+			\end{lstlisting}
+		\end{block}	
+	\end{frame}
+	
 	
 	\begin{frame}{Сравнение времени выполнения операций вставки и удаления}
 		\only<1>{
