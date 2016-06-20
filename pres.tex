@@ -70,104 +70,55 @@ is_subset({Key, _, Left, Right}, OSetB) ->
 		\end{block}	
 	\end{frame}
 	
+	\begin{frame}{Сравнение времени выполнения}
+		Сравнение происходит по следующим шагам:
+		\begin{itemize}
+			\item Генерация текстового файла с 100 000 целых чисел
+			\item Считывание данных из файла в структуру данных
+			\item Замер и вывод среднего времени выполнения для каждой операции над множеством
+		\end{itemize}
+	\end{frame}
 	
-	\begin{frame}{Сравнение времени выполнения операций вставки и удаления}
-		\only<1>{
-			\begin{figure}
-				\includegraphics[scale=0.18]{img/histograms/add_element.png}
-				\caption{Вставка}
-			\end{figure}
-		}
-		
-		\only<2>{
-			\begin{figure}
-				\includegraphics[scale=0.18]{img/histograms/del_element.png}
-				\caption{Удаление}
-			\end{figure}
-		}
+	\begin{frame}{Сравнение времени выполнения на примере операции вставки}
+		\begin{figure}
+			\includegraphics[scale=0.18]{img/histograms/add_element.png}
+			\caption{Вставка}
+		\end{figure}
 	\end{frame}
 	
 	
-	\begin{frame}{Сравнение времени выполнения логических операций}
-		\only<1>{
-			\begin{figure}
-				\includegraphics[scale=0.18]{img/histograms/is_element.png}
-				\caption{Проверка на принадлежность элемента упорядоченному множеству}
-			\end{figure}
-		}
-		
-		\only<2>{
-			\begin{figure}
-				\includegraphics[scale=0.18]{img/histograms/is_subset.png}
-				\caption{Проверка на то, является ли одно упорядоченное множество подмножеством другого}
-			\end{figure}
-		}
-		
-		\only<3>{
-			\begin{figure}
-				\includegraphics[scale=0.18]{img/histograms/is_disjoint.png}
-				\caption{Проверка на непересекаемость двух упорядоченных множеств}
-			\end{figure}
-		}
+	\begin{frame}{Сравнение времени выполнения на примере одной логической операции}				
+		\begin{figure}
+			\includegraphics[scale=0.18]{img/histograms/is_subset.png}
+			\caption{Проверка на то, является ли одно упорядоченное множество подмножеством другого}
+		\end{figure}
 	\end{frame}
 	
 	
-	\begin{frame}{Сравнение времени выполнения перевод в список и обратно, свертки и фильтрации}
-		\only<1>{
-			\begin{figure}
-				\includegraphics[scale=0.18]{img/histograms/to_list.png}
-				\caption{Перевод упорядоченного множества в список}
-			\end{figure}
-		}
-		
-		\only<2>{
-			\begin{figure}
-				\includegraphics[scale=0.18]{img/histograms/from_list.png}
-				\caption{Перевод списка в упорядоченное множество}
-			\end{figure}
-		}
-		
-		\only<3>{
-			\begin{figure}
-				\includegraphics[scale=0.18]{img/histograms/fold.png}
-				\caption{Свертка}
-			\end{figure}
-		}
-		
-		\only<4>{
-			\begin{figure}
-				\includegraphics[scale=0.18]{img/histograms/filter.png}
-				\caption{Фильтрация}
-			\end{figure}
-		}
+	\begin{frame}{Сравнение времени выполнения на примере операции свертки}
+		\begin{figure}
+			\includegraphics[scale=0.18]{img/histograms/fold.png}
+			\caption{Свертка}
+		\end{figure}
 	\end{frame}
 	
 	
-	\begin{frame}{Сравнение времени выполнения операций объединения, пересечения, разности}
-		\only<1>{
-			\begin{figure}
-				\includegraphics[scale=0.18]{img/histograms/union.png}
-				\caption{Объединение}
-			\end{figure}
-		}
-		
-		\only<2>{
-			\begin{figure}
-				\includegraphics[scale=0.18]{img/histograms/intersection.png}
-				\caption{Пересечение}
-			\end{figure}
-		}
-		
-		\only<3>{
-			\begin{figure}
-				\includegraphics[scale=0.18]{img/histograms/subtract.png}
-				\caption{Разность}
-			\end{figure}
-		}
+	\begin{frame}{Сравнение времени выполнения на примере операции объединения}
+		\begin{figure}
+			\includegraphics[scale=0.18]{img/histograms/union.png}
+			\caption{Объединение}
+		\end{figure}
+	\end{frame}
+	
+	\begin{frame}{Сравнение времени выполнения на примере операции пересечения}
+		\begin{figure}
+			\includegraphics[scale=0.18]{img/histograms/intersection.png}
+			\caption{Пересечение}
+		\end{figure}		
 	\end{frame}
 	
 	% Полученные результаты
-	\begin{frame}{\LARGE \textbf{Полученные результаты}}
+	\begin{frame}{Полученные результаты}
 		\begin{itemize}
 			\item Реализована структура данных <<упорядоченное множество>> на языке программирования Erlang.
 			\item Проведено сравнение времени выполнения основных операций реализованной структуры данных с 
