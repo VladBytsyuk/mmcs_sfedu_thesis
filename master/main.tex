@@ -276,21 +276,21 @@ end
 			от других серверов.
 
 			Изначально каждый алгоритм проходит инициализацию. Начальными значениями заполняются матрица $X$ и вектор $e_i$.
-			Вычисляется общая популярность объекта $p$. Помимо этого вычисляются выгода от вставки $ig_ij$ и стоимость 
-			исключения $ec_ij$ для каждого объекта. Далее каждый сервер находит максимальную выгоду от вставки объекта $ig_max$ и 
+			Вычисляется общая популярность объекта $p$. Помимо этого вычисляются выгода от вставки $ig_{ij}$ и стоимость 
+			исключения $ec_{ij}$ для каждого объекта. Далее каждый сервер находит максимальную выгоду от вставки объекта $ig_{max}$ и 
 			номер объекта $j$, на котором она достигается. Далее, с помощью операции $all-reduce-max$ сервера находят максимальную 
 			выгоду от вставки. После этого запускается цикл который будет продолжать выполняться пока в системе есть объекты, 
 			которые выгодно вставить на один из серверов. Если алгоритм запущен на том сервере, на котором необходимо произвести 
 			вставку --- $i'$, то создаем реплику объекта $j$. Если при этом с этого же сервера нужно удалить объект $j'$, то 
 			удаляем его. Если же алгоритм запущен на другом сервере, то увеличиваем общее количество копий объекта $j$, т.к. он
-			будет добавлен на сервер $i'$. Если объект $j$ уже есть на сервере $i$, то изменяем его стоимость исключения $ec_ij$,
-			а если его нет, то --- выгоду от вставки $ig_ij$. Если объект $j'$ нужно удалить с сервера $i$, то уменьшаем количество 
+			будет добавлен на сервер $i'$. Если объект $j$ уже есть на сервере $i$, то изменяем его стоимость исключения $ec_{ij}$,
+			а если его нет, то --- выгоду от вставки $ig_{ij}$. Если объект $j'$ нужно удалить с сервера $i$, то уменьшаем количество 
 			обращений к этому объекту и если объект расположен на этом сервере и количество копий теперь равно $1$, то просто обновляем
 			его стоимость исключения, иначе удаляяем объект. После этого каждый сервер подготавливается к следующей итерации.
-			Производится вычисление максимальной выгоды от вставки объекта $ig_max$ и номера объекта $j$ на котором это достигается, а также 
-			минимальной стоимости исключения $ec_min$ и номер объекта $j'$. Если на сервере нет свободного места, или на сервере хранится 
-			не меньше чем $n$ объектов и при выполнении этого условия максимальная выгода от вставки $ig_max$ меньше чем минимальная стоимость 
-			исключения $ec_min$, то обнуляем $ig_max$ и $j'$. Если даже первое условие не выполняется, то обнуляем только ноиер объекта 
+			Производится вычисление максимальной выгоды от вставки объекта $ig_{max}$ и номера объекта $j$ на котором это достигается, а также 
+			минимальной стоимости исключения $ec_{min}$ и номер объекта $j'$. Если на сервере нет свободного места, или на сервере хранится 
+			не меньше чем $n$ объектов и при выполнении этого условия максимальная выгода от вставки $ig_{max}$ меньше чем минимальная стоимость 
+			исключения $ec_{min}$, то обнуляем $ig_{max}$ и $j'$. Если даже первое условие не выполняется, то обнуляем только ноиер объекта 
 			кандидата на исключение $j'$. Далее сервера снова обмениваются сообщениями, находят максимальную выгоду от вставки и
 			переходят к новой итерации.
 \newpage
@@ -435,13 +435,13 @@ self_stop.
 		Процесс клиента запускакет цикл с единственным параметром --- $ServerName$. 
 		\begin{lstlisting}
 loop(ServerName) -> 
-	receive
-		self_stop ->
-			handleMessage(self_stop, ServerName);
-		Message -> 
-			handleMessage(Message, ServerName), 
-			loop(ServerName)
-	end.
+  receive
+    self_stop ->
+      handleMessage(self_stop, ServerName);
+    Message -> 
+      handleMessage(Message, ServerName), 
+      loop(ServerName)
+  end.
 		\end{lstlisting}
 		При получении сигнала $self\_stop$ процесс клиента обрабатывает сообщение об остановке и прекращает вызовы функции $loop(ServerName)$. При любом другом сигнале ---
 		сообщение обрабатывается и после этого процесс еще раз выполняет $loop(ServerName)$ после чего начинает ожидать новых сообщений от пользователя.
@@ -451,16 +451,16 @@ loop(ServerName) ->
 		алгоритма размещения реплик аналогичны.
 		\begin{lstlisting}
 handleMessage({self_get, Pid, Key}, ServerName) ->
-	{serverPid, ServerName} ! {c_get, self(), Key},
-	receive
-		{c_get, {Key, Value, _Number}} ->
-			Pid ! {get, {Key, Value}};
-		_Other -> Pid ! {error, server}
-	end;
+  {serverPid, ServerName} ! {c_get, self(), Key},
+  receive
+    {c_get, {Key, Value, _Number}} ->
+      Pid ! {get, {Key, Value}};
+      Other -> Pid ! {error, server}
+  end;
 		\end{lstlisting} 
 		Первым аргументом в $handleMessage$ всегда является сообщение в зависимости от которого выбирается вариант его обработки, а вторым аргументом является имя оболочки 
 		Erlang сервера. Представленный выше код отправляет сообщение процессу сервера о запросе значения по ключу $Key$, а после ожидает ответа. Если ответом пришел кортеж вида
-		${c_get, {Key, Value, _Number}}$, то отправляем пользовательскому процессу кортеж вида ${get, {Key, Value}}$. Если же ответом пришло что-либо другое, то пользовательскому 
+		${c\_get, {Key, Value, Number}}$, то отправляем пользовательскому процессу кортеж вида ${get, {Key, Value}}$. Если же ответом пришло что-либо другое, то пользовательскому 
 		процессу будет отправлено сообщение об ошибке ${error, server}$. 
 
 		\begin{lstlisting}
@@ -481,9 +481,9 @@ server:stop().
 			Логика работы процесса сервера анлогична логике работы процесса клиента: запускается функция цикла $loop$, которая в аргументах хранит состояние, и ожидает сообщений.
 			\begin{lstlisting}
 loop(State) ->
-	receive
-		Message -> handleMessage(Message, State)
-	end.		
+  receive
+    Message -> handleMessage(Message, State)
+  end.		
 			\end{lstlisting}
 			где $State$ - состояние сервера. Оно представляет собой кортеж вида
 			\begin{lstlisting}
@@ -518,13 +518,52 @@ loop(State) ->
 			\end{enumerate}
 			Сервер обрабатывает 2 вида ообщений об остановке: остановка текущего сервера и остановка соседа. 
 			
+			\begin{lstlisting}
+handleMessage({stop, Pid}, 
+              State = {Servers, Data, Config, BarrierPid}) -> 
+  case isBridgeNode(node(), to_list(Servers)) of
+    true  -> 
+	  Pid ! {error, stopping_this_node_breaks_the_system_into_two_components},
+      loop(State);
+    {false, _UsedServers} ->
+	  [H | _T] = to_list(Servers),
+      {serverPid, H} ! {add_all, Data},
+      notifyStop(to_list(Servers), oset:new(), node()),    
+      Pid ! {ok, stopped}
+  end;				
+			\end{lstlisting}
 			При получении сообщения об остановке текущего сервера ($stop$) производится проверка, приведет ли остановка данного сервера к разбиению системы на различные компоненты. 
-			Если приведет, отвечает сообщением об ошибке, в противном случае - оповещает всех соседей о своей остановке и отвечает сообщением об остановке. В обоих случаях после ответа
-			продолжается работа сервера.
+			Если приведет, отвечает сообщением об ошибке, в противном случае - оповещает всех соседей о своей остановке и отвечает сообщением об остановке, а первому соседу из списка 
+			отправляет на хранение все свои данные. В обоих случаях после ответа продолжается работа сервера.
 
-			При получении сообщения об остановке соседа ($s_stopped$), сервер убирает этого соседа из своего списка соседей и продолжает свою работу. В этом случае проверок не производится, 
+			\begin{lstlisting}
+handleMessage({s_stopped, Pid, StoppedName, UsedServers}, 
+              State = {Servers, Data, Config, BarrierPid}) ->
+  NewServers = del_element(StoppedName, Servers),
+  {ok, notifyStop, StoppedName, UpdatedUsedServers} = 
+    notifyStop(oset:to_list(NewServers), UsedServers, StoppedName),
+  Pid ! {s_stopped, UpdatedUsedServers},
+  loop({NewServers, Data, Config, BarrierPid});				
+			\end{lstlisting}
+			При получении сообщения об остановке соседа ($s\_stopped$), сервер убирает этого соседа из своего списка соседей и продолжает свою работу. В этом случае проверок не производится, 
 			так как они уже были произведены останавливаемым сервером. 
 
+			\begin{lstlisting}
+handleMessage({link, Pid, ServerName}, 
+              State = {Servers, Data, 
+                      Config = {I, C, E, Ri, Xi}, 
+                      BarrierPid}) ->
+  OtherComponentMaxNumber = tryToFixNumbers(ServerName, State),
+  NewServers = add_element(ServerName, Servers),
+  NewConfig = {I, C, E, 
+              Ri ++ fillList(OtherComponentMaxNumber, 0), 
+              Xi ++ fillList(OtherComponentMaxNumber, 0)},
+  increaseRiXi(OtherComponentMaxNumber,
+               to_list(Servers), from_list([node()])),
+  {serverPid, ServerName} ! {link, node()},   
+  Pid ! {ok, linked}
+  loop({NewServers, Data, NewConfig, BarrierPid});				
+			\end{lstlisting}
 			При получении сообщения о привязке ($link$) если сервера в разных компонентах, то находится максимальный номер объекта в компоненте сети сервера к которому нужно привязать текущий, 
 			а после этого увеличиваем все номера в текущей компоненте. Это необходимо для того, чтобы после объединения в сети не было двух объектов с одинаковыми номерами. Помимо этого 
 			увеличиваем размеры списков $Xi$ и $Ri$, так как индексы этих списков представляют номера объектов в системе. После этого оба сервера вносят друг друга в свои списки соседей. 
@@ -532,13 +571,217 @@ loop(State) ->
 			не производится, так как если сервера уже связаны, то они точно в одной компоненте, и при попытке внести в список соседей, список останется неизменным, так как представляет собой 
 			множество. Далее продолжается работа сервера с обновленным списком соседей.
 
+			\begin{lstlisting}
+handleMessage({unlink, Pid, ServerName}, 
+              State = {Servers, Data, Config, BarrierPid}) ->
+  case is_element(ServerName, Servers) of
+    false -> 
+      Pid ! {error, servers_are_not_linked},
+      loop(State);
+    true  ->
+      ServerList = to_list(del_element(ServerName, Servers)),
+      UsedServers = from_list([node()]),
+      case linkIsNotBridge(ServerName, ServerList, UsedServers) of
+        {false, _UpdatedUsedServers} -> 
+          Pid ! {error, this_link_is_bridge_between_components},
+          loop(State);
+        true ->
+          Pid ! {ok, unlinked},
+          {serverPid, ServerName} ! {unlink, node()},
+          loop({del_element(ServerName, Servers), 
+               Data, Config, BarrierPid})
+      end
+  end.				
+			\end{lstlisting}
 			При получении сообщения об отвязке ($unlink$) сервер первым делом проверяет были ли сервера связаны. Если нет, то сервер отвечает сообщением об ошибке и возвращается к 
 			основному циклу. Если же сервера были связаны, то производится еще одно проверка --- приведет ли данная отвязка к разбиению системы на две компоненты. Если приведет, то
 			сервер отвечает сообщением об ошибке и возвращается к основному циклу. Иначе, серверу-соседу отправляется сообщение, для того, чтобы он удалил текущий сервер из своего списка соседей,
 			потом на исходном сервере из списка соседей удаляется сервер-сосед. Далее сервер продолжает работу с обновленным списком соседей.
 
 		\subsection{Сообщения от клиента}
+			\begin{enumerate}
+				\item О добавлении пары ключ-значение
+				\item О запросе значения по ключу
+				\item О запуске алгоритма размещенияя реплик	
+			\end{enumerate}
+
+			\begin{lstlisting}
+handleMessage({c_set, Pid, Key, Value}, 
+              State = {Servers, _Data, _Config, BarrierPid}) ->
+  Object = findObject(Key, State),
+  {NewObject, NewData, NewConfig, _BarrierPid} = 
+    tryToAddObject(Object, State, Key, Value),
+  Pid ! {c_set, NewObject}, 
+  loop({Servers, NewData, NewConfig, BarrierPid});				
+			\end{lstlisting}
+			При получении сообщения о добавлении пары ключ-значение ($c\_set$) сервер ищет объект с заданным ключом в сети. Если объекта не было в сети, то находится номер, который будет присвоен
+			новому объекту. Сам объект добавляется на текущий сервер, увеличиваются вектора $Ri$ и $Xi$, а также каждому серверу сети отправляется уведомление о добавлении нового объекта, чтобы
+			они увеличили свои вектора $Ri$ и $Xi$. Текущий сервер проставляет вектору $Xi$ единицу в последнюю ячейку. Если же объект с таким ключом уже есть в сети, то тот сервер, на котором 
+			хранится этот объект обновляет значение в этом объекте. В обоих случаях сервера продолжают свою работу с обновленными данными.
+
+			\begin{lstlisting}
+handleMessage({c_get, Pid, Key}, 
+              State = {Servers, Data, Config, BarrierPid}) ->
+  Object = findObject(Key, State),
+  case Object of 
+    value_not_found ->
+      Pid ! {c_get, value_not_found},
+      loop(State);
+    {_K, _V, N} ->
+      { I, C, E, Ri, Xi } = Config,    
+      OldRiN = getListItem(N, Ri),
+      NewRi = replaceListItem(N, OldRiN + 1, Ri),
+      NewConfig = { I, C, E, NewRi, Xi },
+      Pid ! {c_get, Object},
+      loop({Servers, Data, NewConfig, BarrierPid})
+  end;				
+			\end{lstlisting}
+			При получении сообщения о запросе значения по ключу ($c\_get$) сервер ищет объект сначала локально. Если сервер не находит объект в своем хранилище, то начинается поиск на соседях. 
+			Для этого сервер проходит список своих соседей передавая им ключ объекта и множество серверов на которых поиск уже был произведен. Первый из списка соседей ищет объект в своих данных
+			и если находит, то возвращает объект на сервер, который инициировал поиск. Если же на нем нет объекта с таким ключом, то он тоже проходит всех своих соседей добавляя себя в множество
+			серверов на которых поиск уже был произведен. В таком случае ответом будет либо объект, если он есть на одном из серверов сети, либо сообщение $value\_not\_found$, если такого объекта 
+			нет в системе. Также если объект был найден, то исходный сервер увеличивает на единицу соответсвующее значение в векторе количество запросов $Ri$. Далее сервер продолжает свою работу.
+
+			\begin{lstlisting}
+handleMessage(d_dgr, 
+              State = {Servers, Data, 
+                      Config = {I, C, E, Ri, Xi}, 
+                      BarrierPid}) ->
+  BarrierPid ! start,
+  UsedServers = add_element(node(), oset:new()),
+  {Popularity, UsedServers} = 
+    getPopularity(Ri, to_list(Servers), UsedServers),
+  {Objects, NewUsedServers} = 
+    getAllObjects(to_list(Servers), Data, UsedServers),
+  ObjectsList = to_list(Objects),
+  dgrNotify(Popularity, ObjectsList, to_list(Servers), UsedServers),
+  loop(dgr(State, Popularity, ObjectsList, initiator));				
+			\end{lstlisting}
+			При получении сообщения о старте алгоритма размещения реплик ($d\_dgr$) сервер отправлет процесу барьера сообщение о старте текущей сессии. После этого он вычисляет вектор 
+			популярности объектов, собирая со всех серверов системы вектора количества запросов $Ri$ и суммируя их. Далее он собирает список всех объектов системы и оповещает все сервера о старте 
+			работы алгоритма. После этого каждый сервер запускает алгоритм и продолжает работу с новым состоянием, которое получится после завершения работы алгоритма.		
 			
+		\subsection{Внутренние сообщения и сообщения алгоритма размещения реплик}
+			Внутренние сообщения используются для обеспечения второстепенных операций, например обход системы при вычислении вектора популярности объектов ($d\_popul$) или проверка на то,
+			приведет ли удаление связи между двумя серверами к разбиению системы на две компоненты ($is\_bridge$).
+
+			В качестве примера рассмотрим сообщение $add\_all$, которое сохраняет объекты с останавливаемого сервера на его первом соседе.
+			\begin{lstlisting}
+handleMessage({add_all, NewData}, 
+              State = {Servers, Data, Config, BarrierPid}) ->
+  UpdatedData = oset:union(Data, NewData),
+  loop({Servers, UpdatedData, Config, BarrierPid});		
+			\end{lstlisting}
+
+	\section{Алгоритм размещения реплик и синхронизация серверов}
+		Функции относящиеся к рассматриваемому алгоритму вынесены в Erlang модуль $dgr$. У этого модуля две основные задачи. Первая это запуск и управление алгоритмом размещения реплик.
+		Вторая это управление процессом барьера, так как данный процесс прямо относится к алгоритму.
+
+		\subsection{Процесс барьера}
+			Процесс барьера запускается в отдельной Erlang оболочке и ожидает сообщение о начале сессии ($start$), после которого он ожидает сообщения определенное количество времени (в данной 
+			работе 50 миллисекунд). При получении сообщения вида ${Pid, Msg}$, где $Pid$ это идентификатор процесса сервера который прислал сообщение, а $Msg$ это само сообщение, процесс барьера 
+			вносит их в списки идентификаторов и сообщений, и заново запускает таймер остановки. Если за заданное время процес не получил ни одного сообщения, он перестает реагировать на все 
+			сообщения которые придут ему до начала следующей сессии. Далее он ищет сообщение с максимальной выгодой от вставки и отсылает его каждому идентификатору процесса сервера из 
+			сохраненных за эту сессию. Те сервера что не успели отправить сообщение до конца сессии выбывают из работы алгоритма.
+
+			\begin{lstlisting}
+start_barrier() -> 
+  register(barrier, spawn(fun() -> loop() end)).
+
+loop() ->
+  receive
+    start -> mainLoop([], [])
+  end.
+
+mainLoop(Pids, Messages) ->
+  receive
+    {Pid, Msg} -> mainLoop(Pids ++ [Pid], Messages ++ [Msg])
+	after ?BARRIER_TIME -> sendResponses(Pids, Messages)           
+  end.	
+  
+sendResponses(Pids, MessageList = []) -> 
+  loop();
+sendResponses(Pids, Messages = [H | T]) ->
+  MaxMessaage = findMaxMessage(Messages, H),
+  send(Pids, MaxMessaage).
+
+send([], MaxMessage) -> 
+  loop();
+send(Pids = [H | T], MaxMessaage) ->
+  H ! {d_barrier, MaxMessaage},
+  send(T, MaxMessaage).
+
+findMaxMessage(MessageList = [], Msg) -> 
+  Msg;
+findMaxMessage(MessageList = [H = {HIgMax, HI, HJ, HJ_} | T], 
+               Msg = {IgMax, _I, _J, _J_}) when HIgMax > IgMax -> 
+  findMaxMessage(T, H);
+findMaxMessage(MessageList = [H = {HIgMax, HI, HJ, HJ_} | T], Msg) -> 
+  findMaxMessage(T, Msg).
+			\end{lstlisting}
+
+			Каждый из процессов сервера связан с процессом барьера. Это противоречит распределенному характеру системы создавая один узел системы привязанный к каждому серверу. Такое решение 
+			было принято по следующим прицинам: простота и скорость работы. Простота означает, что реализация алгоритма принятия решений в распределенной системе не является целью данной работы.
+			Скорость работы означает, что при коллективном принятии решений пришлось бы увеличить количество отправляемых сообщений, а при выполнении роли барьера сервером, который запустил 
+			алгоритм необходимо было бы связать с ним все сервера и так при каждом запуске алгоритма, что так же повлияло бы на скорость работы. Поэтому создание централизованного узла 
+			было выбрано как самый оптимальный способ решения данной проблемы. Если процесс барьера будет недоступен, то алгоритм размещения реплик не изменит состояния серверов системы.
+
+		\subsection{Алгоритм размещения реплик}
+			Алгоритм запускается с помощью функции 
+			\begin{lstlisting}
+dgr(State = {Servers,
+            Data, 
+            Config = {I, C, E, Ri, Xi}, 
+            BarrierPid}, 
+    Popularity, Objects, Initiator) ->
+  MaxNumber = s_utils:findMaxNumberLocal(0, Objects),
+  NewXi = s_utils:fillList(MaxNumber, 0),
+  NewE = C,
+  Ig = s_utils:initIg(Ri, Popularity),
+  Ec = s_utils:fillList(MaxNumber, 0),
+  Rc = s_utils:fillList(MaxNumber, 0),
+  {IgMax, J} = s_utils:findIgMax(Ig),
+  SendMsg = {IgMax, I, J, 0},
+  RecvMsg = allReduceMax(BarrierPid, SendMsg),
+  {NewData, NewConfig} = whileLoop(RecvMsg, 
+    BarrierPid, Objects, oset:new(),
+    {I, C, NewE, Ri, NewXi}, 
+    {Popularity, MaxNumber, Ig, Ec, Rc}, 
+    Servers, Initiator),
+  {Servers, NewData, NewConfig, BarrierPid}.
+			\end{lstlisting}
+			где $State$ --- состояние сервера, $Popularity$ --- это список популярности (количество запросов со всех серверов) объектов, $Objects$ --- список объектов системы, $Initiator$
+			--- флаг содержащий атомы $initiator$ и $no\_initiator$. Эта функция проводит инициализацию алгоритма, потом с помощью процесса барьера находится максимальная выгода от вставки 
+			объекта в системе. После этого управление передается циклу $whileLoop$, который производит размещение объектов в системе и по остановке алгоритма возвращает измененное состояние
+			сервера. 
+			\begin{lstlisting}
+whileLoop(RecvMsg = {IgMax, I_, J, J_}, BarrierPid, 
+          Objects, Data, Config = {I, C, E, Ri, Xi},
+          Buf = {P, MaxNumber, Ig, Ec, Rc}, Servers,
+          Initiator) when IgMax > 0 ->
+  {NewData, ResXi, ResIg, ResEc, ResE, ResRc} = igIf(
+         RecvMsg, Objects, Servers, Data, Config, 
+         {P, MaxNumber, Xi, E, Ig, Ec, Rc}),
+  {NewIgMax, NewJ} = s_utils:findIgMax(Ig),
+  {NewEcMin, NewJ_} = s_utils:findEcMin(Ec),
+  {ResIgMax, ResJ_} = terminateIf(E, C, MaxNumber, 
+                                  NewIgMax, NewJ_, 
+                                  NewEcMin),
+  SendMsg = {ResIgMax, I, NewJ, ResJ_},
+  initiateBarrier(Initiator, BarrierPid),
+  NewRecvMsg = allReduceMax(BarrierPid, SendMsg),
+  whileLoop(NewRecvMsg, BarrierPid, Objects, NewData, 
+            {I, C, ResE, Ri, ResXi}, 
+            {P, MaxNumber, ResIg, ResEc, ResRc}, 
+            Servers, Initiator);
+  
+ whileLoop(RecvMsg, BarrierPid, Objects, Data, Config, 
+           Buf, Servers, Initiator) -> 
+   {Data, Config}.				
+			\end{lstlisting}
+
+
+
 
 
 	\section{Структура дерева}
