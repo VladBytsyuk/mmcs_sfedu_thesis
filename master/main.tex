@@ -734,13 +734,13 @@ dgr(State = {Servers,
             Config = {I, C, E, Ri, Xi}, 
             BarrierPid}, 
     Popularity, Objects, Initiator) ->
-  MaxNumber = s_utils:findMaxNumberLocal(0, Objects),
-  NewXi = s_utils:fillList(MaxNumber, 0),
+  MaxNumber = findMaxNumberLocal(0, Objects),
+  NewXi = fillList(MaxNumber, 0),
   NewE = C,
-  Ig = s_utils:initIg(Ri, Popularity),
-  Ec = s_utils:fillList(MaxNumber, 0),
-  Rc = s_utils:fillList(MaxNumber, 0),
-  {IgMax, J} = s_utils:findIgMax(Ig),
+  Ig = initIg(Ri, Popularity),
+  Ec = fillList(MaxNumber, 0),
+  Rc = fillList(MaxNumber, 0),
+  {IgMax, J} = findIgMax(Ig),
   SendMsg = {IgMax, I, J, 0},
   RecvMsg = allReduceMax(BarrierPid, SendMsg),
   {NewData, NewConfig} = whileLoop(RecvMsg, 
@@ -751,9 +751,12 @@ dgr(State = {Servers,
   {Servers, NewData, NewConfig, BarrierPid}.
 			\end{lstlisting}
 			где $State$ --- состояние сервера, $Popularity$ --- это список популярности (количество запросов со всех серверов) объектов, $Objects$ --- список объектов системы, $Initiator$
-			--- флаг содержащий атомы $initiator$ и $no\_initiator$. Эта функция проводит инициализацию алгоритма, потом с помощью процесса барьера находится максимальная выгода от вставки 
-			объекта в системе. После этого управление передается циклу $whileLoop$, который производит размещение объектов в системе и по остановке алгоритма возвращает измененное состояние
-			сервера. 
+			--- флаг содержащий атомы $initiator$ и $no\_initiator$. Эта функция проводит инициализацию алгоритма. Находится число объектов в сети $MaxNumber$, вектор размещения объектов на
+			текущем сервере $Xi$ заполняется нулями, оставшееся на сервере место $E$ заполняется емкостью $C$, далее по формулам заполняется вектор выгод от вставки объектов $Ig$, а вектор
+			стоимости исключения объекта $Ec$ и вектор количества копий $Rc$ заполняются нулями. После этого каждый сервер находит объект с максимальной стоимостью, формирует сообщение $SendMsg$ и отправляет 
+			его процессу барьера. Далее он ожидает ответа от процесса барьера с сообщением содержащим максимальную выгоду от вставки во всей системе. Если за определенное время (в данной
+			работе 100 миллисекунд) ответа не приходит, то считаем что пришло сообщение с нулевой выгодой от вставки, и в таком случае алгоритм остановится. После этого управление передается 
+			циклу $whileLoop$, который производит размещение объектов в системе и по остановке алгоритма возвращает измененное состояние сервера. 
 			\begin{lstlisting}
 whileLoop(RecvMsg = {IgMax, I_, J, J_}, BarrierPid, 
           Objects, Data, Config = {I, C, E, Ri, Xi},
@@ -762,8 +765,8 @@ whileLoop(RecvMsg = {IgMax, I_, J, J_}, BarrierPid,
   {NewData, ResXi, ResIg, ResEc, ResE, ResRc} = igIf(
          RecvMsg, Objects, Servers, Data, Config, 
          {P, MaxNumber, Xi, E, Ig, Ec, Rc}),
-  {NewIgMax, NewJ} = s_utils:findIgMax(Ig),
-  {NewEcMin, NewJ_} = s_utils:findEcMin(Ec),
+  {NewIgMax, NewJ} = findIgMax(Ig),
+  {NewEcMin, NewJ_} = findEcMin(Ec),
   {ResIgMax, ResJ_} = terminateIf(E, C, MaxNumber, 
                                   NewIgMax, NewJ_, 
                                   NewEcMin),
@@ -779,9 +782,117 @@ whileLoop(RecvMsg = {IgMax, I_, J, J_}, BarrierPid,
            Buf, Servers, Initiator) -> 
    {Data, Config}.				
 			\end{lstlisting}
+			Цикл обрабатывает пришедшее сообщение и если выгода от вставки $IgMax$ больше нуля, значит объекты можно разместить лучше и продолжаем работу, а иначе прекрвщаем работу и возвращаем 
+			состояние сервера. Далее каждое условие в теле цикла выносится в отдельную функцию. Каждое из условий может изменить некоторое состояние сервера, например вектор размещения объектов 
+			$Xi$ и соответсвенно добавить объект на сервер.
 
+			Функция $igIf$ проверяет, выполняется ли данный алгоритм на том серевре, вставка на который дает максимальную выгоду. Если алгоритм размещения реплик выполняется на этом сервере, то
+			выбирается следующая реализация:
+			\begin{lstlisting}
+igIf(RecvMsg = {IgMax, I_, J, J_}, 
+     Objects, Servers, Data,
+     Config = {I, C, E, Ri, Xi},
+     Buf = {P, MaxNumber, NewXi, E, 
+            Ig, Ec, Rc}) when I_ == I ->
+  UpdatedXi = replaceListItem(J, 1, NewXi),
+  Object = findObjectWithNumber(Objects, J),
+  NewData = add_element(Object, Data),    
+  NewEc = replaceListItem(J, getListItem(J, Ig), Ec),
+  NewIg = replaceListItem(J, 0, Ig),
+  NewE = E - 1,
+  NewRc = replaceListItem(J, getListItem(J, Rc) + 1, Rc),
+  evictedIfIgSelf(NewData, UpdatedXi, NewIg,
+                  NewEc, NewE, NewRc, J_);
+			\end{lstlisting}
+			Так как необходимо сохранить объект с номером $J$ на сервер $I$, то в векторе $Xi$ этого сервера установим значение элемента $J$ в единицу. После этого объект с номером $J$ добавляется 
+			в список данных текущего севрера. После этого выгода от вставки объекта с номером $J$ на сервер $I$ записывается в стоимость его исключения, так как он уже хранится на текущем сервере,
+			а выгода от вставки этого объекта на этот же сервер становится равна нулю. Количество оставшегося на сервере места $E$ становится меньше на единицу, а в векторе количества копий $Rc$
+			увеличиваем значение копий для объекта с номером $J$ на единицу. Далее проверяется условие на исключение объекта с этого севрера функцией $evictedIfIgSelf$.
+			\begin{lstlisting}
+evictedIfIgSelf(Data, Xi, Ig, Ec, E, Rc, J) when J =/= 0 ->
+  NewXi = replaceListItem(J, 0, Xi),
+  NewData = removeObjectByNumber(Data, J),
+  NewIg = replaceListItem(J, getListItem(J, Ec), Ig),
+  NewEc = replaceListItem(J, 0, Ec),
+  NewE = E + 1,
+  NewRc = replaceListItem(J, getListItem(J, Rc) - 1, Rc),
+  {?IF(NewData =:= {error, no_object_with_current_number}, Data, NewData), 
+   NewXi, NewIg, NewEc, NewE, NewRc};
+	
+evictedIfIgSelf(Data, Xi, Ig, Ec, E, Rc, J) -> 
+  {Data, Xi, Ig, Ec, E, Rc}.				
+			\end{lstlisting}
+			Если есть объект, который необходимо исключить с текущего сервера, то в векторе $Xi$ этого сервера установим значение элемента $J$ в ноль и удалим объект с номером $J$ из списка 
+			объектов теукущего сервера. После этого в выгоду от вставки объекта с номером $J$ на сервер $I$ записывается стоимость его исключения, так как он уже не хранится на текущем сервере,
+			а стоимость исключения этого объекта с этого же сервер становится равна нулю. Количество оставшегося на сервере места $E$ становится больше на единицу, а в векторе количества копий 
+			$Rc$ уменьшаем значение копий для объекта с номером $J$ на единицу и возвращаем измененные данные. Если же объекта на удаление нет, то просто оставляем данные сервера без изменений.
 
+			Вернемся к функции $igIf$. Если она вызывается на сервере, на котором вставка не дает макисмальной выгоды, то выбирается следующая реализация:
+			\begin{lstlisting}
+igIf(RecvMsg = {IgMax, I_, J, J_}, 
+     Objects, Servers, Data,
+     Config = {I, C, E, Ri, Xi},
+     Buf = {P, MaxNumber, NewXi, E, Ig, Ec, Rc}) ->
+  NewRc = replaceListItem(J, getListItem(J, Rc) + 1, Rc),
+  {NewIg, NewEc} = replicaIf(getListItem(J, NewXi), 
+                             getListItem(J, Ri), J, Ig, Ec),
+  {ResultRc, ResultEc} = evictedIfIgOther(J_, NewXi, Ri, P, 
+                                          NewRc, NewEc),
+  {Data, NewXi, NewIg, ResultEc, E, ResultRc}.				
+			\end{lstlisting}
+			В векторе количества копий $Rc$ увеличиваем значение копий для объекта с номером $J$ на единицу, так как он был сохранен на другом сервере. Далее проверяется наличие объекта с 
+			номером $J$ на текущем сервере с помощью функции $replicaIf$, которая заполняет выгоду от вставки объекта и его стоимость исключения новыми данными. 
+			\begin{lstlisting}
+replicaIf(Xij, Rij, J, Ig, Ec) when Xij == 0 -> 
+  NewIg = replaceListItem(J, Rij * (?TR - ?TL), Ig),
+  {NewIg, Ec};
 
+replicaIf(_Xij, Rij, J, Ig, Ec) ->
+  NewEc = replaceListItem(J, Rij * (?TR - ?TL), Ec),
+  {Ig, NewEc}.				
+			\end{lstlisting}
+			После этого если есть объект, который необходимо исключить с сервера на котором происходят изменения, мы уменьшаем количество копий объекта с номером $J$ в векторе $Rc$ на единицу.
+			Если объект сохранен на текущем сервере ($Xij = 1$) и количество его представлений в сети равно единице ($Rcj = 1$), то обновляем значение стоимости исключения объекта с номером $J$,
+			а иначе оставляем его без изменений. В обоих случаях возвращаем данные серверу. Если же объекта, который надо исключить не было, то просто возвращаем данные серверу.
+			\begin{lstlisting}
+evictedIfIgOther(J, Xi, Ri, P, Rc, Ec) when J =/= 0 ->
+  NewRc = replaceListItem(J, getListItem(J, Rc) - 1, Rc),
+  case getListItem(J, Xi) == 1 andalso getListItem(J, NewRc) == 1 of
+    true  -> 
+      Rij = getListItem(J, Ri),
+      Pj = getListItem(J, P),
+      Value = Rij * (?TR -?TL) + Pj * (?TS - ?TR),
+      NewEc = replaceListItem(J, Value, Ec),
+      {NewRc, NewEc};
+    false -> 
+      {NewRc, Ec}
+  end;
+
+evictedIfIgOther(J, Xi, Ri, P, Rc, Ec) -> 
+  {Rc, Ec}.				
+			\end{lstlisting}
+			Далее происходит подготовка к следующей итерации алгоритма. Находятся максимальная выгода от вставки $IgMax$ с номером объекта на котором она достигается $J$ и минимальная стоимость 
+			исключения обекта $EcMin$ с номером объекта на котором она достигается $J\_$. После этого выполняется функция $terminateIf$.
+			\begin{lstlisting}
+terminateIf(E, C, N, IgMax, J, EcMin) ->
+  case E == 0 orelse C - E >= N of
+    true  -> 
+      case IgMax =< EcMin of
+        true  -> 
+          {0, 0};
+        false -> 
+          {IgMax, J}
+      end;
+    false -> 
+      {IgMax, 0}
+end.	
+			\end{lstlisting}
+			Если на сервере не осталось свободного места ($E = 0$) или уже хранятся как минимум все объекты в сети ($C - E >= N$), то если максимальная выгода от вставки не больше минимальной 
+			стоимости исключения обнуляем и максимальную выгоду от вставки и номер исключаемого с этого сервера объекта, а если она строго больше то оставляем их без изменений.
+			Если же на сервере есть свободное место и на нем расположены еще не все объекты системы, то обнуляем номер исключаемого объекта. 
+			
+			Далее из полученных данных формируем сообщение. Сервер который инициировал запуск алгоритма уведомляет процесс барьера о начале новой сессии. Каждый сервер отправляет свое
+			сообщение процессу барьера  и ожидает от него ответное сообщение с которым запускается нова итерация алгоритма в том случае если выгода от вставки не была равна нулю.
 
 
 	\section{Структура дерева}
