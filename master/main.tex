@@ -26,13 +26,15 @@
 \newpage
 
 \Intro
-	В данной работе была реализована распределенная система на базе Erlang процессов 
-	и алгоритм по размещению в ней реплик объектов.
+	В данной работе реализована распределенная система на базе Erlang процессов. Она включает в себя серверные приложения хранящие пары ключ-значение и клиентские приложения,
+	управляющие данными на серверах. Так же у серверов есть возможность привязываться друг к другу и отвязываться друг от друга получая HTTP запросы во время работы системы без ущерба для
+	хранимых данных. Помимо этого реализован алгоритм по размещению реплик объектов на серверах системы для ускорения получения доступа к наиболее популярным для каждого сервера
+	объектам системы.
 	
-	Были проведены сравнения времени работы этого алгоритма в зависимости от количества
-	серверов и объектов в системе.
+	На полученой системе проведены сравнения времени работы алгоритма размещения реплик при различных конфигурациях системы и различном количестве объектов, а также анализ полученных 
+	временных результатов.
 	
-	Целью работы является реализация алгоритма и анализ времени его работы.
+	Целью работы является реализация распределенной системы и алгоритма размещения реплик, а также анализ времени его работы.
 \newpage
 
 \chapter{Обзор используемых технологий и алгоритмов}
@@ -915,442 +917,80 @@ end.
 			сообщение процессу барьера  и ожидает от него ответное сообщение с которым запускается нова итерация алгоритма в том случае если выгода от вставки не была равна нулю.
 
 
-	\section{Структура дерева}
-		Упорядоченное множество реализовано с помощью красно-черного дерева. 
-		Упорядоченность и уникальность элементов обеспечивается тем, 
-		что красно-черное дерево является двоичным деревом поиска.
-
-		Дерево реализовано как кортеж, хранящий в себе свои поддеревья.
-		\begin{lstlisting}
-{Key, Color, Left, Right}
-		\end{lstlisting}
-		где Key --- значение, Color --- цвет узла, Left --- левое поддерево,
-		Right --- правое поддерево.
-
-		Лист дерева представляется в виде 
-		\begin{lstlisting}
-{nil, black, nil, nil}
-		\end{lstlisting}
-		так как у листа нет ни значения, ни потомков, а его цвет всегда черный.
-
-
-	\section{Вставка и удаление}
-		\subsection{Вставка}
-			Рассмотрим алгоритм вставки. Для соблюдения красно-черных свойств необходимо:
-			\begin{enumerate}
-				\item Вставить новый узел в красно-черное дерево, как в обычное бинарное 
-					  дерево поиска, и окрасить его в красный цвет.
-				\item Произвести балансировку всего дерева от корня к листьям.
-				\item Окрасить корень в черный цвет, так как в процессе балансировки он мог 
-				      стать красным.
-			\end{enumerate}
-
-			\begin{lstlisting}
-add_element(Key, Tree) ->
-    make_black(ins(Key, Tree)).
-			\end{lstlisting}
-			где
-			\begin{lstlisting}
-make_black({Key, _, Left, Right}) ->
-    {Key, black, Left, Right}.
-			\end{lstlisting}
-			окрашивает узел в черный цвет вне зависимости от того, какого цвета он был раньше.
-	
-			\begin{lstlisting}
-ins(Key, Tree)
-			\end{lstlisting}
-			вставляет в дерево Tree значение Key и производит его балансировку.
-		
-			\begin{lstlisting}
-ins(Key, {nil, black, nil, nil}) ->
-    {Key, red, {nil, black, nil, nil}, {nil, black, nil, nil}};
-			\end{lstlisting} 
-			если функция вызвана для пустого дерева, то создать дерево с корнем, у которого 
-			значение Key красного цвета.
-		
-			\begin{lstlisting}
-ins(Key, {Key, Color, Left, Right}) ->
-    {Key, Color, Left, Right};
-			\end{lstlisting}
-			если функция вызвана для дерева, в котором существует значение Key, то 
-			прекратить рекурсивные вызовы, а дерево оставить без изменений.
 			
-			\begin{lstlisting}
-ins(Key, {Key1, Color, Left, Right}) when Key < Key1 ->
-    balance({Key1, Color, ins(Key, Left), Right});
-			\end{lstlisting}
-			если значение необходимо вставить в левое поддерево, то вызвать функцию для 
-			левого поддерева и сбалансировать текущее дерево. Аналогично и для правого 
-			поддерева:
-			\begin{lstlisting}
-ins(Key, {Key1, Color, Left, Right}) when Key > Key1 ->
-    balance({Key1, Color, Left, ins(Key, Right)}).
-			\end{lstlisting}
+\chapter{Результаты тестовых испытаний}
+	\section{Описание тестового окружения}
+		Все тестовые испытания с оценкой времени проводились в локальной сети на трех различных машинах. В глобальной сети была произведена только проверка работоспособности системы.
+		В ходе тестов были произведены проверки на 100, 10000 и 1000000 объектов и 6 серверов для трех видов топологий системы: полносвязная, звезда и кольцо. Все связи являются двусторонними.
+		Сервера $A$ и $D$ располагаются на первой вычислительной машине, $B$ и $E$ на второй, а $C$ и $F$ на третьей.
+		
+		\subsection{Виды топологий}
+			\subsubsection{Полносвязная}
+				Сервера $A$, $B$, $C$, $D$, $E$ и $F$ связаны друг с другом.
+				\begin{figure}[H]
+					\centering
+					\scalebox{.5}{\includegraphics[width=\textwidth]{img/full.png}}
+					\caption{Полносвязная}
+				\end{figure}
 			
-			Функция balance, выполняющая балансировку дерева, реализует 4 случая нарушения 
-			четвертого красно-черного свойства рассмотренные ранее.
-			\begin{figure}[H]
+
+			\subsubsection{Звезда}
+				Сервера $B$, $C$, $D$, $E$ и $F$ связаны только с сервером $A$.
+				\begin{figure}[H]
+					\centering
+					\scalebox{.5}{\includegraphics[width=\textwidth]{img/star.png}}
+					\caption{Звезда}
+				\end{figure}
+
+			\subsubsection{Кольцо}
+				Сервер $A$ соединен с серверами $B$ и $F$, $B$ с $A$ и $C$, $C$ с $B$ и $D$, $D$ с $C$ и $E$, $E$ с $D$ и $F$ и $F$ с $E$ и $A$.
+				\begin{figure}[H]
+					\centering
+					\scalebox{.5}{\includegraphics[width=\textwidth]{img/circle.png}}
+					\caption{Кольцо}
+				\end{figure}
+
+		\subsection{Конфигурация вычислительных машин}
+			\subsubsection{Вычислительная машина номер 1}
+				Процессор: Intel Core i7-6700HQ CPU @ 2.60GHz x 8 \\
+				Операционная система: Ubuntu 16.04.4 LTS 64-bit \\
+				Оперативная память: 16 Gb
+			\subsubsection{Вычислительная машина номер 2}
+				Процессор: Intel Core i7-6700HQ CPU @ 2.60GHz x 8 \\
+				Операционная система: Ubuntu 16.04.4 LTS 64-bit \\
+				Оперативная память: 16 Gb
+			\subsubsection{Вычислительная машина номер 3}
+				Процессор: Intel Core i7-6700HQ CPU @ 2.60GHz x 8 \\
+				Операционная система: Ubuntu 16.04.4 LTS 64-bit \\
+				Оперативная память: 16 Gb
+
+		\subsection{Описание испытаний}
+			При каждом испытании объекты распространялись в системе следующим образом:
+			\begin{table}[H]
+				\small
 				\centering
-				\includegraphics[width=\textwidth]{img/insert/clauses.png}
-				\caption{Случаи нарушения красно-черных свойств при вставке}
-			\end{figure}
-			
-		
-		\subsection{Удаление}
-			Реализация использует арифметику цветов. К красному и черному цветам
-			можно добавить или отнять черный цвет. Пусть при вычитании из красного цвета 
-			черного цвета получится негативный черный, вычитание из черного цвета черного 
-			даст красный цвет, добавление к красному цвету черного даст черный и добавление к
-			черному цвету черного даст двойной черный цвет~\cite{RBdelete}.
-			\begin{figure}[H]
-				\centering
-				\includegraphics[width=\textwidth]{img/color_ar.png}
-				\caption{Арифметика цветов}
-			\end{figure}
-			Реализуется арифметика цветов следующей функцией добавления цвета:
-			\begin{lstlisting}
-addBlack({Key, red, Left, Right}) ->
-    {Key, black, Left, Right};
-	
-addBlack({Key, black, Left, Right}) ->
-    {Key, doubleBlack, Left, Right}.			
-			\end{lstlisting}
-			Функция вычитания цвета не используется.
-			
-			Рассмотрим алгоритм удаления. Для соблюдения красно-черных свойств необходимо:
-			\begin{enumerate}
-				\item Если у удаляемого узла 1 потомок и этот узел красный, то удаляем его, 
-					  а на его место ставим единственного потомка.
-					  Если у удаляемого узла 1 потомок и этот узел черный, то удаляем его,
-					  а на его место ставим единственного потомка с увеличенным цветом.
-					  Если у удаляемого узла 2 потомка, то удаляем его, а на его место 
-					  ставим узел из левого поддерева с максимальным значением, удаляя 
-					  из левого поддерева этот узел. 
-				\item Произвести балансировку всего дерева от корня к листьям, исправляя 
-					  цвета узлов.
-				\item Окрасить корень и листья в черный цвет, так как в процессе удаления 
-					  и балансировки они могли изменить цвет. 
-			\end{enumerate}
-			
-			\begin{lstlisting}
-del_element(Key, Tree) -> 
-    nilFix(make_black(del(Key, Tree))).
-			\end{lstlisting}
-			где 
-			\begin{lstlisting}
-nilFix({nil, doubleBlack, nil, nil}) ->
-    {nil, black, nil, nil};
-	
-nilFix(Tree) ->
-    Tree.					
-			\end{lstlisting}	
-			Если аргументом является двойной черный лист, то функция преобразует его в черный,
-			а если аргумент --- дерево, то возвращает его без изменений.
-			
-			Рассмотрим функцию del, которая удаляет узел с заданным значением из дерева,
-			а затем вызывает функцию балансировки дерева delFix. 
-			\begin{lstlisting}
-del(_, {nil, black, nil, nil}) ->
-    {nil, black, nil, nil};
-			\end{lstlisting}
-			Если производится попытка удалить узел из пустого дерева, то вернуть пустое дерево.
-			\begin{lstlisting}
-del(Key, {Key, red, Left, {nil, black, nil, nil}}) ->
-    Left;
-	
-del(Key, {Key, red, {nil, black, nil, nil}, Right}) ->
-    Right;
-			\end{lstlisting}
-			Если узел окрашен в красный цвет и у него есть только один потомок, то
-			вернуть потомка.
-			\begin{lstlisting}
-del(Key, {Key, black, Left, {nil, black, nil, nil}}) ->
-    addBlack(Left);
-		
-del(Key, {Key, black, {nil, black, nil, nil}, Right}) ->
-    addBlack(Right);
-			\end{lstlisting}
-			Если узел окрашен в черный цвет и у него есть только один потомок, то
-			вернуть потомка с добавленным цветом для сохранения 5 красно-черного свойства.
-			\begin{lstlisting}
-del(Key, {Key, Color, Left, Right})	->
-    delFix({max(Left), Color, del(max(Left), Left), Right});
-			\end{lstlisting}
-			Если у удаляемого узла 2 потомка, то вернуть дерево, в котором вместо удаленного 
-			узла будет узел с максимальным значением из его левого потомка, цветом удаленного узла, 
-			левым потомком без своего максимального значения, а его правый потомок останется без изменений.
-			Результат необходимо сбалансировать.
-			\begin{lstlisting}
-del(Key, {KeyTree, ColorTree, LeftTree, RightTree}) 
-    when Key < KeyTree ->
-    delFix({KeyTree, ColorTree, del(Key, LeftTree), RightTree});
-			
-del(Key, {KeyTree, ColorTree, LeftTree, RightTree}) 
-    when Key > KeyTree ->	
-    delFix({KeyTree, ColorTree, LeftTree, del(Key, RightTree)}).
-			\end{lstlisting}
-			Рекурсивный поиск удаляемого узла в дереве и балансировка дерева после 
-			удаления.
-			
-			Функция delFix реализует следующие варианты нарушения красно-черных свойств 
-			при удалении узла:
-			\begin{figure}[H]
-				\centering
-				\includegraphics[width=\textwidth]{img/1_4.png}
-				\caption{Случаи 1 --- 4 нарушения красно-черных свойств при удалении}
-			\end{figure}
-			
-			\begin{figure}[H]
-				\centering
-				\includegraphics[width=\textwidth]{img/5_8.png}
-				\caption{Случаи 5 --- 8 нарушения красно-черных свойств при удалении}
-			\end{figure}
-			
-	\section{Логические функции}
-		Для работы с упорядоченным множеством реализованы следующие логические операции:
-		\begin{enumerate}
-			\item Проверка на принадлежность элемента упорядоченному множеству
-			\item Проверка на то, является ли одно упорядоченное множество
-				  подмножеством другого
-			\item Проверка на непересекаемость двух упорядоченных множеств
-		\end{enumerate} 
-		Рассмотрим каждую из них.
-		
-		\subsection{Принадлежность элемента множеству}
-			Проверка на принадлежность элемента упорядоченному множеству
-			реализуется с помощью функции is\_element(Elem, OSet), где Elem --- 
-			значение элемента, а OSet --- упорядоченное множество.
-			\begin{lstlisting}
-is_element(_,  {nil, black, nil, nil}) ->
-    false;				
-			\end{lstlisting}
-			Пустому множеству не может принадлежать никакой элемент.
-			\begin{lstlisting}
-is_element(Elem, {Elem, _, _, _}) ->
-    true;
-			\end{lstlisting}
-			Если найден узел с искомым значением, то элемент принадлежит множеству.
-			\begin{lstlisting}
-is_element(Elem, {CurrElem, _, Left, Right}) ->		
-    if
-        Elem < CurrElem -> 
-            is_element(Elem, Left);
-        Elem > CurrElem -> 
-            is_element(Elem, Right)
-    end.	
-			\end{lstlisting}
-			Поиск элемента в дереве, реализующем упорядоченное множество.
-			
-		\subsection{Является ли одно упорядоченное множество подмножеством другого}
-			Проверка на то, является ли одно упорядоченное множество подмножеством другого,
-			реализуется с помощью функции is\_subset(OSetA, OSetB), где OSetA --- предполагаемое
-			подмножество OSetB.
-			\begin{lstlisting}
-is_subset({nil, black, nil, nil}, _) ->
-    true;	
-			\end{lstlisting}
-			Пустое множество является подмножеством любого множества.	
-			\begin{lstlisting}
-is_subset({Key, _, Left, Right}, OSetB) ->
-    IsElem = is_element(Key, OSetB),
-    if
-        IsElem -> 
-            is_subset(Left, OSetB) 
-            and 
-            is_subset(Right, OSetB);
-        true -> 
-            false
-    end.
-			\end{lstlisting}
-			Проверяется принадлежность корня OSetA множеству OSetB, и если корень
-			принадлежит OSetB, то проверяется принадлежность левого и правого поддерева
-			множеству OSetB. Иначе OSetA не является подмножеством OSetB.
-			
-		\subsection{Непересекаемость двух упорядоченных множеств}
-			Проверка на непересекаемость двух упорядоченных множеств реализуется с помощью функции
-			is\_disjoint(OSetA, OSetB), где OSetA и OSetB --- упорядоченные множества.
-			\begin{lstlisting}
-is_disjoint(_, {nil, black, nil, nil}) ->
-    true;	
-			\end{lstlisting}
-			Никакое множество не пересекается с пустым.
-			\begin{lstlisting}
-is_disjoint(OSetA, {Key, _, Left, Right}) ->
-    IsElem = is_element(Key, OSetA),
-    if
-        IsElem -> 
-            false;
-        true -> 
-            is_disjoint(OSetA, Left) 
-            and 
-            is_disjoint(OSetA, Right)
-	end.
-			\end{lstlisting}
-			Проверяется принадлежность корня OSetB множеству OSetA, и если корень
-			принадлежит OSetA, то множества не являются пересекающимися. Иначе
-			проверяется непересекаемость левого и правого поддерева множеству OSetA.
-		
-		
-	\section{Перевод в список и обратно, свертка и фильтрация}
-		\subsection{Перевод упорядоченного множества в список}
-			\begin{lstlisting}
-to_list({nil, black, nil, nil}) ->
-    [];
-			\end{lstlisting}
-			Пустое множество переводится в пустой список.
-			\begin{lstlisting}
-to_list({Key, _, Left, Right}) ->
-    to_list(Left) ++ [Key] ++ to_list(Right).
-			\end{lstlisting}
-			Для сохранения упорядоченности в список переводится левое поддерево, потом 
-			добавляется корневое значение, а затем в список переводится правое поддерево.
-			
-		\subsection{Перевод списка в упорядоченное множество}
-			\begin{lstlisting}
-from_list(List) ->
-    lists:foldl(fun(Elem, OSet) -> 
-                    add_element(Elem, OSet) 
-                end, 
-                new(), 
-                List).
-			\end{lstlisting}			
-			Перевод списка в упорядоченное множество реализуется с помощью стандартной 
-			функции свертки списка и функции добавления элемента во множество. К каждому 
-			элементу списка List применяется функция fun(Elem, OSet), где Elem --- элемент
-			List, а в качестве OSet изначально берется пустое множество.
-			
-		\subsection{Свертка}
-			Свертка fold(Fun, Acc, OSet) применяет к каждому элементу упорядоченного
-			множества OSet функцию Fun(Elem, Acc) и возвращает итоговое значение Acc.
-			\begin{lstlisting}
-fold(_, Acc, {nil, black, nil, nil}) ->
-    Acc;	
-			\end{lstlisting}
-			Если свертка применяется к пустому множеству, то просто возвращается Acc.
-			\begin{lstlisting}
-fold(Fun, Acc, {Key, _, Left, Right}) ->
-    Fun(Fun(Key, fold(Fun, Acc, Left)), fold(Fun, Acc, Right)).
-			\end{lstlisting}
-			Если же свертка применяется к не пустому множеству, то Fun применяется к левому, 
-			а затем и к правому поддереву.
-		
-		\subsection{Фильтрация}
-			Фильтрация filter(Pred, OSet) применяет к каждому элементу OSet предикат Pred и 
-			возвращает упорядоченное множество элементов из OSet удовлетворяющих Pred.
-			\begin{lstlisting}
-filter(Pred, OSet) ->
-    OSetList = to_list(OSet),
-    FilteredList = lists:filter(Pred, OSetList),
-    from_list(FilteredList).	
-			\end{lstlisting}
-			Упорядоченное множество переводится в список, список фильтруется с помощью стандартной 
-			функции, а затем результат переводится из списка обратно в упорядоченное множество.
-			
-			
-	\section{Объединение, пересечение, разность}
-		Реализации операций объединения, пересечения и разности отличаются друг от друга для 
-		достижения лучшей скорости выполнения.
-		
-		\subsection{Объединение}
-			Операция объединения реализована рекурсивно. 
-			\begin{lstlisting}			
-union(OSetA, {nil, black, nil, nil}) ->
-    OSetA;
-			\end{lstlisting}
-			Объединением упорядоченного множества OSetA с пустым будет упорядоченное множество OSetA.
-			\begin{lstlisting}
-union(OSetA, {Key, _, Left, Right}) ->
-    union(union(add_element(Key, OSetA), Left), Right).
-			\end{lstlisting}
-			Для объединения упорядоченных множеств OSetA и OSetB во множество OSetA добавляется корневой 
-			элемент OSetB, а после применяется операция объединения OSetA к левому и правому поддереву OSetB.  
-		
-			Для объединения более чем двух упорядоченных множеств используется функция объединения от списка
-			упорядоченных множеств.
-			\begin{lstlisting}
-union([OSet1, OSet2 | []]) ->
-    union(OSet1, OSet2);
-			\end{lstlisting}
-			Если в списке всего два упорядоченных множества, то использовать операцию объединения от двух 
-			упорядоченных множеств.
-			\begin{lstlisting}
-union([OSet1, OSet2 | OSetsListTail]) ->
-    OSetUnion = union(OSet1, OSet2),
-    union([OSetUnion | OSetsListTail]).
-			\end{lstlisting}
-			В противном случае заменить в исходном списке два первых упорядоченных множества
-			их объединением и найти объединение нового списка.
-				
-		\subsection{Пересечение}
-			Операция пересечения реализована перебором одного из упорядоченных множеств.
-			\begin{lstlisting}
-intersection(OSetA, OSetB) ->
-    intersection(OSetA, OSetB, {nil, black, nil, nil}).
-			\end{lstlisting}
-			При первом вызове операции пересечения для упорядоченных множеств OSetA и OSetB
-			вызывается функция пересечения с пустым аккумулятором.
-			\begin{lstlisting}	
-intersection({nil, black, nil, nil}, _, Acc) ->
-    Acc;
-			\end{lstlisting}
-			При пересечении любого упорядоченного множества с пустым множеством необходимо вернуть аккумулятор.
-			\begin{lstlisting}	
-intersection(OSetA, OSetB, Acc) ->
-    OSetALeft = min(OSetA),
-    OSetANew = del_element(OSetALeft, OSetA),
-    IsElem = is_element(OSetALeft, OSetB),
-    if 
-        IsElem =:= true -> 
-            AccNew = add_element(OSetALeft, Acc),
-            intersection(OSetANew, OSetB, AccNew);
-        IsElem =:= false -> 
-            intersection(OSetANew, OSetB, Acc)
-    end.
-			\end{lstlisting}
-			В противном случае удаляем из упорядоченного множества OSetA минимальный элемент, и если он 
-			принадлежит еще и множеству OSetB, то добавляем его в аккумулятор, иначе находим пересечение 
-			нового упорядоченного множества OSetA и неизмененного OSetB.
-			
-			Функция пересечения более чем двух упорядоченных множеств реализуется аналогично с объединением:
-			\begin{lstlisting}
-intersection([OSet1, OSet2 | []]) ->
-    intersection(OSet1, OSet2);
+				\caption{Таблица размещения объектов}
+				\begin{tabular} {|r|c|c|c|c|c|c|}
+					\hline
+						& A	    & B      & C      & D      & E     & F      \\
+					\hline
+	100 объектов		& 10    & 20     & 5      & 15     & 40    & 10     \\
+	10000 объектов		& 1000  & 3000   & 2000   & 1000   & 1500  & 1500   \\
+	1000000 объектов	& 50000 & 100000 & 400000 & 250000 & 20000 & 180000 \\
+					\hline
+				\end{tabular}
+			\end{table}
+			После заполнения серверов необходимым количеством объектов, клиенты начинают делать по 500 в случае 100 объектов и 15000 в случае 10000 объектов случайных запросов к своим серверам, 
+			после чего запускается алгоритм и измеряестся время его работы.
 
-intersection([OSet1, OSet2 | OSetsListTail]) ->
-    OSetIntersection = intersection(OSet1, OSet2),
-    intersection([OSetIntersection | OSetsListTail]).
-			\end{lstlisting}
-			
-		\subsection{Разность}
-			Операция разности двух упорядоченных множеств как и операция пересечения реализована 
-			перебором одного из упорядоченных множеств.
-			\begin{lstlisting}
-subtract(OSetA, {nil, black, nil, nil}) ->
-    OSetA;
-			\end{lstlisting}
-			Вычитание из упорядоченного множества OSetA пустого множества даст упорядоченное множество OSetA.
-			\begin{lstlisting}
-subtract(OSetA, OSetB) ->
-    OSetBLeft = min(OSetB),
-    OSetBNew = del_element(OSetBLeft, OSetB),
-    IsElem = is_element(OSetBLeft, OSetA),
-    if 
-        IsElem =:= true -> 
-            OSetANew = del_element(OSetBLeft, OSetA),
-            subtract(OSetANew, OSetBNew);
-        IsElem =:= false -> 
-            subtract(OSetA, OSetBNew)
-    end.	 	
-			\end{lstlisting}
-			Если же из OSetA вычитаем непустое OSetB, то удаляем из множества OSetB минимальный элемент. Если он 
-			принадлежит еще и OSetA, то удаляем его из старого OSetA и вычитаем из нового
-			множества OSetA новое упорядоченное множество OSetB. Иначе вычитаем из неизмененного
-			OSetA новое множество OSetB.
-\newpage			
-			
-			
-			
-\chapter{Сравнение с модулями sets и ordsets}
+
+		
+
+
+
+
+
+
 	В работе произведено сравнение времени выполнения стандартных операций собственной реализации структуры данных со 
 	стандартными структурами языка Erlang. Реализация упорядоченного множества oset~\cite{osetR} сравнивается со стандартным 
 	упорядоченным множеством ordsets~\cite{ordsetsR} и стандартным множеством sets~\cite{setsR}.
