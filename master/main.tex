@@ -211,66 +211,86 @@ end
 			$X_ij$, где $i = 1, ..., m$, $j = 1, ..., n$ и содержит $1$ если объект $j$ хранится на сервере $i$ и $0$  в противном случае.
 			Популярность объекта $j$ определяется как общее количество запросов этого объекта со всех серверов $p_j = \sum_{i=1}^{m} r_ij$.
 			Количество копий объекта $j$ определяется как $rc_j = \sum_{i=1}^{m} X_ij$.
-			Выгода от вставки определяется следующей формулой: 
-			% \[ 	ig_ij =
-			% 	\begin{cases} 
-			% 		p_j * (t_s - t_r) + r_ij * (t_r - t_l) 	& rc_j \eq 0 \\
-			% 		r_ij * (t_r - t_l) 						& X_ij \eq 0, rc_j \gt 0 \\
-			% 		0 										& X_ij \eq 1 
-			%  	\end{cases}
-			% \].
-			% Стоимость исключения определяется следующей формулой:
-			% \[ 	ec_ij =
-			% 	\begin{cases} 
-			% 		0										& X_ij \eq 0 \\
-			% 		r_ij * (t_r - t_l) 						& X_ij \eq 1, rc_j \gt 0 \\
-			% 		p_j * (t_s - t_r) + r_ij * (t_r - t_l)	& X_ij \eq 1, rc_j \eq 1 
-			%  	\end{cases}
-			% \].
+			Выгода от вставки объекта определяется следующей формулой: 
+			 \[ 	
+				ig_{ij} =
+				\begin{cases} 
+			 		p_j (t_s - t_r) + r_{ij} (t_r - t_l) 	& rc_j = 0 \\
+			 		r_{ij} (t_r - t_l) 						& X_{ij} = 0, rc_j > 0 \\
+			 		0 										    & X_{ij} = 1 
+			  	\end{cases}
+			 \]
+			Стоимость исключения объекта определяется следующей формулой:
+			\[ 	
+				ec_{ij} =
+				\begin{cases} 
+					0										& X_{ij} = 0 \\
+					r_{ij} (t_r - t_l) 						& X_{ij} = 1, rc_j > 0 \\
+					p_j (t_s - t_r) + r_{ij} (t_r - t_l)	& X_{ij} = 1, rc_j = 1 
+			 	\end{cases}
+			\]
 
 
-			% \begin{algorithm}
-			% 	\caption{DGR($r, c, t_s , t_r , t_l$)}\label{alg:Example}
-			% 	\begin{algorithmic}[1]
-			% 		\State {Server $s_i$}
-			% 		\State {Initialization}
-			% 		\State all-reduce-sum($r_i, p$)
-			% 		\State $X_i \gets 0; e_i \gets c_i$
-			% 		\For {$j := 1$ to $n$} do
-			% 			\State $ig_ij \gets p_j * (t_s - t_r) + r_ij * (t_r - t_l); ec_ij \gets 0; rc_j \gets 0$
-			% 		\EndFor
-			% 		\State $ig_max \gets max_k ig_ik; j \gets arg max_k ig_ik$
-			% 		\State $send_msg \gets (ig_max, i, j, 0)$
-			% 		\State all-reduce-max($send_msg, recv_msg$)
-			% 		\State $(ig_max, i^', j, j^') \gets recv_msg$
-			% 		\State {$i^'$ is the server that has $ig_max$ for object $j$; $j^'$ is the object to be evicted from server $i^'$ (0 if none)}
-			% 		\While {ig_max \gt 0}
-			% 			\If {$i^i \eq i$}
-			% 				\State {this server has the maximum insertion gain}
-			% 				\State {$X_ij \gets 1$}
-			% 				\State {$ec_ij \gets ig_ij; ig_ij \gets 0; e_i \gets e_i - 1; rc_j \gets rc_j + 1$}
-			% 				\If {$j_' \neq 0$}
-								
-			% 				\Else
-
-			% 				\EndIf
-
-			% 			\Else
-
-			% 			\EndIf
-			% 		\EndWhile
-
-			% 		\If {$igeq maxval$}
-			% 			\State $igets 0$
-			% 		\Else
-			% 			\If {$i+kleq maxval$}
-			% 				\State $igets i+k$
-			% 			\EndIf
-			% 		\EndIf
+			\begin{algorithm}[tbp]\footnotesize
+				\caption{DGR($r, c, t_s , t_r , t_l$)}\label{alg:Example}
+				\begin{algorithmic}[1]
+					\State \{Server $s_i$\}
+					\State \{Initialization\}
+					\State \textbf{all-reduce-sum}($r_i, p$)
+					\State $X_i \gets 0; e_i \gets c_i$
+					\For {$j := 1$ to $n$}
+						\State $ig_{ij} \gets p_j (t_s - t_r) + r_{ij} (t_r - t_l); ec_{ij} \gets 0; rc_j \gets 0$
+					\EndFor
+					\State $ig_{max} \gets max_k (ig_{ik}); j \gets arg(max_k(ig_{ik})$
+					\State $send\_msg \gets (ig_{max}, i, j, 0)$
+					\State \textbf{all-reduce-max}($send\_msg, recv\_msg$)
+					\State $(ig_{max}, i', j, j') \gets recv\_msg$
+					\State \{$i'$ is the server that has $ig_{max}$ for object $j$; $j'$ is the object to be evicted from server $i'$ (0 if none)\}
+					\While {$ig_{max} > 0$}
+						\If {$i' = i$}
+							\State \{this server has the maximum insertion gain\}
+							\State $X_{ij} \gets 1$
+							\State $ec_{ij} \gets ig_{ij}; ig_{ij} \gets 0; e_i \gets e_i - 1; rc_j \gets rc_j + 1$
+							\If {$j' \neq 0$}
+								\State $X_{ij'} \gets 0$
+								\State $ig_{ij'} \gets ec_{ij'}; ec_{ij'} \gets 0$
+								\State $e_i \gets e_i + 1; rc_{j'} \gets rc_{j'} - 1$
+							\EndIf
+						\Else
+							\State {\{another server has the maximum insertion gain\}}
+							\State $rc_j \gets rc_j + 1$
+							\If {$X_{ij} = 0$}
+								\State $ig_{ij} \gets r_{ij} (t_r - t_l)$
+							\Else
+								\State $ec_{ij} \gets r_{ij} (t_r - t_l)$
+							\EndIf
+							\If {$j' \neq 0$}
+								\State $rc_j' \gets rc_{j'} - 1$
+								\If {$X_{ij'} = 1$ and $rc_{j'} = 1$}
+									\State $ec_{ij'} \gets r_{ij'} (t_r - t_l) + p_{j'} (t_s - t_r)$
+								\EndIf
+							\EndIf
+						\EndIf
+						\State \{prepare the next iteration\}
+						\State $ig_{max} \gets max_k (ig_{ik}); j \gets arg(max_k(ig_{ik})$
+						\State $ec_{min} \gets min_k (ec_{ik} : ec_{ik} > 0)$
+						\State $j \gets arg(min_k(ec_{ik} : ec_{ik} > 0)$
+						\If {$e_i = 0$ or $c_i - e_i \ge n$}
+							\If {$ig_{max} \le ec_{min}$}
+								\State $ig_{max} \gets 0; j' \gets 0$
+							\EndIf
+						\Else 
+							\State $j' \gets 0$
+						\EndIf
+						\State $send\_msg \gets (ig_{max}, i, j, j')$
+						\State \textbf{all-reduce-max}($send\_msg, recv\_msg$)
+						\State $(ig_{max}, i', j, j') \gets recv\_msg$
+					\EndWhile
 				 
-			% \end{algorithmic}
-			% \end{algorithm}
+				\end{algorithmic}
+			\end{algorithm}
 
+			\newpage
 			Алгоритмы выполняются на всех серверах системы одновременно. Когда они доходят до определенных действий, 
 			как например операция $all-reduce-max$, они связываются друг с другом и продолжают после получения ответа 
 			от других серверов.
