@@ -13,7 +13,7 @@
   foreground,
   contents={%
     \raisebox{\dp\strutbox}[\layerheight][0pt]{%
-      \parbox[b]{\layerwidth}{\centering Ростов-на-Дону\\ \thedate%
+      \parbox[b]{\layerwidth}{\centering \bf{Ростов-на-Дону --- \thedate}%
        \\\mbox{}
        }}%
   }
@@ -30,42 +30,43 @@
 
     {\centering
     %
-    \MakeTextUppercase {МИНИСТЕРСТВО ОБРАЗОВАНИЯ И НАУКИ РФ}
+    \MakeTextUppercase {\bf{\small{МИНОБРНАУКИ РОССИИ}} \normalsize{}}
 
     \vgap
 
     Федеральное государственное автономное образовательное\\
     учреждение высшего образования\\
-    \MakeTextUppercase {Южный федеральный университет}
+    Южный федеральный университет
 
     \vgap
 
 	Институт математики, механики и компьютерных наук
-    имени~И.\,И.\,Воровича
+    им.~И.\,И.\,Воровича
 
     \vgap
 
-    \direction
-
-    \ifthenelse{\boolean{needchair}}{
-    \vgap
-
-    \thechair}{}
+    \ifthenelse{\boolean{needchair}} {
+      \thechair
+    }{}
 
     \vspace* {\fill}
 
     \ifthenelse{\value{worktype} = 2}{%
-    \me
+      \large{\me}
+    }{}
 
-    \vgap}{}
-
-    {\usefont{T2A}{PTSansCaption-TLF}{m}{n}
-    \MakeTextUppercase{\thetitle}}
+    \vspace* {\fill}
+    
+    \MakeTextUppercase{\thetitle}
+    \normalsize{}
+    \vgap
 
     \ifthenelse{\value{worktype} = 2}{%
      \vgap
 
-    Магистерская диссертация}{}
+    \MakeTextUppercase{Выпускная квалификационная работа}\\
+    \direction
+    }{}
     \ifthenelse{\value{worktype} = 0}{
      \vgap
 
@@ -80,7 +81,6 @@
 
     \vspace {\fill}
 
-    \begin{flushright}
     \ifthenelse{\value{worktype} = 0 \OR 
                 \value{worktype} = 1 \OR
                 \value{worktype} = 3}{
@@ -90,13 +90,14 @@
 
     \vgap
 
-    Научный руководитель:\\
+    Научный руководитель --- \\
     \supervisor\\
     \ifthenelse{\value{worktype} = 2}{%
-    Рецензент:\\
+    \vgap
+    Рецензент --- \\
     \reviewer\\
     }{}
-	\end{flushright}
+
     \ifthenelse{\value{worktype} = 0}{
     \vspace{\fill}
             \begin{flushleft}
