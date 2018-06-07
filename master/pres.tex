@@ -15,8 +15,6 @@
 \usecolortheme{beaver}
 
 \title[]{Размещение реплик в распределенной\\системе на базе Erlang-процессов}
-\subtitle[ПМИ]{Прикладная математика и информатика}
-
 \author[Быцюк В.В.]{Быцюк Владислав Вячеславович}
 \date[]{}
 
@@ -27,7 +25,13 @@
 \begin{frame}
 	\titlepage
 	\begin{center}
-		Научный руководитель:\\д.ф.-м.н., профессор В.С. Пилиди
+		Научный руководитель:\\д.ф.-м.н., профессор В.С. Пилиди\\~\\
+
+		Рецензент:\\к.ф.-м.н., доцент С.А. Гуда\\~\\
+
+		Прикладная математика и информатика
+
+		Кафедра информатики и вычислительного эксперимента
 	\end{center}
 \end{frame}
 
@@ -42,6 +46,30 @@
 	
 	
 % Основное содержание
+
+\begin{frame}[fragile]{Erlang-процессы}
+	\begin{block}{Запуск процесса}
+		\begin{lstlisting}[language = erlang] 	
+Pid = spawn(Fun).
+		\end{lstlisting}
+	\end{block}	
+
+	\begin{block}{Отправка сообщения}
+		\begin{lstlisting}[language = erlang] 	
+Pid ! Message.
+		\end{lstlisting}
+	\end{block}	
+
+	\begin{block}{Ожидание сообщений}
+		\begin{lstlisting}[language = erlang] 	
+receive
+  Pattern1 -> Expressions1;
+  Pattern2 -> Expressions2;
+  true     -> Expression3
+end
+		\end{lstlisting}
+	\end{block}	
+\end{frame}
 
 \begin{frame}[fragile]{Клиент-серверное приложение}
 	\begin{figure}
@@ -59,14 +87,14 @@
 
 \begin{frame}[fragile]{Клиент-серверное приложение}
 	\begin{figure}
-		\includegraphics[scale=0.11]{img/start_processes.png}
+		\includegraphics[scale=0.11]{img/start.png}
 		\caption{Пример системы с клиентами и процессами запуска}
 	\end{figure}
 \end{frame}
 
 \begin{frame}[fragile]{Клиент-серверное приложение}
 	\begin{figure}
-		\includegraphics[scale=0.11]{img/barrier.png}
+		\includegraphics[scale=0.11]{img/bar.png}
 		\caption{Пример системы с клиентами, процессами запуска и процессом барьера}
 	\end{figure}
 \end{frame}
@@ -83,6 +111,26 @@
 	\end{enumerate}
 \end{frame}
 
+\begin{frame}[fragile]{Тестовые испытания}
+	\begin{figure}
+		\includegraphics[scale=0.2]{img/histograms/top.png}
+		\caption{Влияние топологии сети на количество итераций алгоритма}
+	\end{figure}
+\end{frame}
+
+\begin{frame}[fragile]{Тестовые испытания}
+	\begin{figure}
+		\includegraphics[scale=0.2]{img/histograms/req.png}
+		\caption{Влияние общего количества запросов к объекту на количество итераций алгоритма}
+	\end{figure}
+\end{frame}
+
+\begin{frame}[fragile]{Тестовые испытания}
+	\begin{figure}
+		\includegraphics[scale=0.2]{img/histograms/dist.png}
+		\caption{Влияние распределения запросов к объектам на количество итераций алгоритма}
+	\end{figure}
+\end{frame}
 
 
 
