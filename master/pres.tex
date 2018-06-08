@@ -138,20 +138,87 @@ end
 			r_{ij} (t_r - t_l) 						& X_{ij} = 1, rc_j > 0 \\
 			p_j (t_s - t_r) + r_{ij} (t_r - t_l)	& X_{ij} = 1, rc_j = 1 
 		\end{cases}
-	\]
+	\] 
 \end{frame}
 
-\begin{frame}[fragile]{Краткое описание алгоритма размещения реплик}
-	Алгоритм размещения реплик действует по следующей схеме:
-	\begin{enumerate}
-		\item Инициализация всех данных необходимых для работы алгоритма на каждом сервере
-		\item Нахождение объекта, вставка которого принесет максимальную выгоду на каждом сервере
-		\item Коллективное решение, о том какой объект и на каком сервере будет размещен
-		\item Размещение выбранного объекта на выбранном сервере, и внесение информации об этом 
-			  действии на каждый сервер системы
-		\item Переход на шаг 2 до тех пор пока хотя бы на один из серверов возможна вставка объекта
-	\end{enumerate}
+\begin{frame}[fragile]{Алгоритм}
+	\begin{block}{Шаг 1. Инициализация.}
+		\textbf{all-reduce-sum}($r_i, p$)\\
+		$X_i \gets 0$\\
+		$e_i \gets c_i$\\
+		$for$ $j$ $:=$ $1$ $to$ $n$ $do$\\
+		\qquad$ig_{ij} \gets p_j (t_s - t_r) + r_{ij} (t_r - t_l)$\\
+		\qquad$ec_{ij} \gets 0$\\
+		\qquad$rc_j \gets 0$
+	\end{block}
+
+	\begin{block}{Шаг 2. Выбор элемента с максимальной выгодой вставки.}
+		$ig_{max} \gets max_k (ig_{ik})$\\
+		$j \gets arg(max_k(ig_{ik})$\\
+		$send\_msg \gets (ig_{max}, i, j, 0)$\\ 
+		\textbf{all-reduce-max}($send\_msg, recv\_msg$)\\
+		$(ig_{max}, i', j, j') \gets recv\_msg$		
+	\end{block} 
 \end{frame}
+
+\begin{frame}[fragile]{Алгоритм}
+	\begin{block}{Шаг 3. Условие остановки.}
+		$if$ $ig_{max} \le 0$ $then$ $stop$
+	\end{block}
+
+	\begin{block}{Шаг 4.1. Если $i = i'$}
+		$X_{ij} \gets 1$\\
+		$ec_{ij} \gets ig_{ij}$\\
+		$ig_{ij} \gets 0$\\
+		$e_i \gets e_i - 1$\\
+		$rc_j \gets rc_j + 1$\\
+		$if$ $j' \neq 0$ $then$\\
+		\qquad$X_{ij'} \gets 0$\\
+		\qquad$ig_{ij'} \gets ec_{ij'}$\\
+		\qquad$ec_{ij'} \gets 0$\\
+		\qquad$e_i \gets e_i + 1$\\
+		\qquad$rc_{j'} \gets rc_{j'} - 1$
+	\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Алгоритм}
+	\begin{block}{Шаг 4.2. Если $i \ne i'$}
+		$rc_j \gets rc_j + 1$\\
+		$if$ $X_{ij} = 0$ $then$\\
+		\qquad$ig_{ij} \gets r_{ij} (t_r - t_l)$\\
+		$else$\\
+		\qquad$ec_{ij} \gets r_{ij} (t_r - t_l)$\\
+		$if$ $j' \neq 0$ $then$\\
+		\qquad$rc_{j'} \gets rc_{j'} - 1$\\
+		\qquad$if$ $X_{ij'} = 1$ and $rc_{j'} = 1$ $then$\\
+		\qquad\qquad$ec_{ij'} \gets r_{ij'} (t_r - t_l) + p_{j'} (t_s - t_r)$
+	\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Алгоритм}
+	\begin{block}{Шаг 5. Подготовка к следующей итерации.}
+		$ig_{max} \gets max_k (ig_{ik})$\\
+		$j \gets arg(max_k(ig_{ik})$\\
+		$ec_{min} \gets min_k (ec_{ik} : ec_{ik} > 0)$\\
+		$j' \gets arg(min_k(ec_{ik} : ec_{ik} > 0)$\\
+		$if$ $e_i = 0$ or $c_i - e_i \ge n$ $then$\\
+		\qquad$if$ $ig_{max} \le ec_{min}$ $then$\\
+		\qquad\qquad$ig_{max} \gets 0$\\
+		\qquad\qquad$j' \gets 0$\\
+		$else$\\ 
+		\qquad$j' \gets 0$\\
+	\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Алгоритм}	
+	\begin{block}{Шаг 6. Выбор элемента с максималной выгодой вставки.}
+		$send\_msg \gets (ig_{max}, i, j, j')$\\
+		\textbf{all-reduce-max}($send\_msg, recv\_msg$)\\
+		$(ig_{max}, i', j, j') \gets recv\_msg$\\
+		$goto$ $3$
+	\end{block}
+\end{frame}
+
 
 \begin{frame}[fragile]{Тестовые испытания}
 	\begin{figure}
