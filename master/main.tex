@@ -219,11 +219,11 @@ end
 			$c_1, ..., c_m$. $o_1, ..., o_n$ --- объекты в системе. $t_l$ --- стоимость доступа к объекту, который находится на 
 			этом же сервере. $t_r$ --- стоимость доступа к объекту, который находится на другом сервере в группе. $t_s$ --- стоимость 
 			доступа к объекту, который находится вне группы. Очевидно, что $t_l \leq t_r \leq t_s$. Каждый сервер $s_i$ знает свой
-			коэффициент запросов $r_ij$ для всех $j = 1, ..., n$. Определим матрицу $r$ с элементами $r_ij$, где $i = 1, ..., m$,
+			коэффициент запросов $r_{ij}$ для всех $j = 1, ..., n$. Определим матрицу $r$ с элементами $r_{ij}$, где $i = 1, ..., m$,
 			$j = 1, ..., n$ и означает количество запросов объекта $j$ с сервера $i$. Также определим матрицу $X$ с элементами 
-			$X_ij$, где $i = 1, ..., m$, $j = 1, ..., n$ и содержит $1$, если объект $j$ хранится на сервере $i$ и $0$  в противном случае.
-			Популярность объекта $j$ определяется как общее количество запросов этого объекта со всех серверов $p_j = \sum_{i=1}^{m} r_ij$.
-			Количество копий объекта $j$ определяется как $rc_j = \sum_{i=1}^{m} X_ij$.
+			$X_{ij}$, где $i = 1, ..., m$, $j = 1, ..., n$ и содержит $1$, если объект $j$ хранится на сервере $i$ и $0$  в противном случае.
+			Популярность объекта $j$ определяется как общее количество запросов этого объекта со всех серверов $p_j = \sum_{i=1}^{m} r_{ij}$.
+			Количество копий объекта $j$ определяется как $rc_j = \sum_{i=1}^{m} X_{ij}$.
 			Выгода от вставки объекта определяется следующей формулой: 
 			 \[ 	
 				ig_{ij} =
@@ -607,12 +607,12 @@ handleMessage({stop, Pid},
 	  Pid ! {error, stopping_this_node_breaks_the_system_into_two_components},
       loop(State);
     {false, _UsedServers} ->
-	  [H | _T] = to_list(Servers),
+      [H | _T] = to_list(Servers),
       {serverPid, H} ! {add_all, Data},
       notifyStop(to_list(Servers), oset:new(), node()),    
       Pid ! {ok, stopped}
   end;				
-			\end{lstlisting}
+			\end{lstlisting} 
 			При получении сообщения об остановке текущего сервера ($stop$) производится проверка, приведет ли остановка данного сервера к разбиению системы на различные компоненты. 
 			Если приведет, то отвечает сообщением об ошибке, в противном случае - оповещает всех соседей о своей остановке и отвечает сообщением об остановке, а первому соседу из списка 
 			отправляет на хранение все свои данные. В обоих случаях после ответа продолжается работа сервера.
@@ -622,7 +622,8 @@ handleMessage({s_stopped, Pid, StoppedName, UsedServers},
               State = {Servers, Data, Config, BarrierPid}) ->
   NewServers = del_element(StoppedName, Servers),
   {ok, notifyStop, StoppedName, UpdatedUsedServers} = 
-    notifyStop(oset:to_list(NewServers), UsedServers, StoppedName),
+    notifyStop(oset:to_list(NewServers), 
+               UsedServers, StoppedName),
   Pid ! {s_stopped, UpdatedUsedServers},
   loop({NewServers, Data, Config, BarrierPid});				
 			\end{lstlisting}
@@ -797,7 +798,8 @@ findMaxMessage(MessageList = [], Msg) ->
 findMaxMessage(MessageList = [H = {HIgMax, HI, HJ, HJ_} | T], 
                Msg = {IgMax, _I, _J, _J_}) when HIgMax > IgMax -> 
   findMaxMessage(T, H);
-findMaxMessage(MessageList = [H = {HIgMax, HI, HJ, HJ_} | T], Msg) -> 
+findMaxMessage(MessageList = [H = {HIgMax, HI, HJ, HJ_} | T], 
+               Msg) -> 
   findMaxMessage(T, Msg).
 			\end{lstlisting}
 
