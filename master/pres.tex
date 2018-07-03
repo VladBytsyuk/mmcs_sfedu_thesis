@@ -64,8 +64,8 @@ Pid ! Message.
 	\begin{block}{Ожидание сообщений}
 		\begin{lstlisting}[language = erlang] 	
 receive
-  Pattern1 -> Expressions1;
-  Pattern2 -> Expressions2;
+  Message1 -> Expression1;
+  Message2 -> Expression2;
   true     -> Expression3
 end
 		\end{lstlisting}
@@ -154,7 +154,7 @@ end
 
 	\begin{block}{Шаг 2. Выбор элемента с максимальной выгодой вставки.}
 		$ig_{max} \gets max_k (ig_{ik})$\\
-		$j \gets arg(max_k(ig_{ik})$\\
+		$j \gets arg(max_k(ig_{ik}))$\\
 		$send\_msg \gets (ig_{max}, i, j, 0)$\\ 
 		\textbf{all-reduce-max}($send\_msg, recv\_msg$)\\
 		$(ig_{max}, i', j, j') \gets recv\_msg$		
@@ -198,9 +198,9 @@ end
 \begin{frame}[fragile]{Алгоритм}
 	\begin{block}{Шаг 5. Подготовка к следующей итерации.}
 		$ig_{max} \gets max_k (ig_{ik})$\\
-		$j \gets arg(max_k(ig_{ik})$\\
+		$j \gets arg(max_k(ig_{ik}))$\\
 		$ec_{min} \gets min_k (ec_{ik} : ec_{ik} > 0)$\\
-		$j' \gets arg(min_k(ec_{ik} : ec_{ik} > 0)$\\
+		$j' \gets arg(min_k(ec_{ik} : ec_{ik} > 0))$\\
 		$if$ $e_i = 0$ or $c_i - e_i \ge n$ $then$\\
 		\qquad$if$ $ig_{max} \le ec_{min}$ $then$\\
 		\qquad\qquad$ig_{max} \gets 0$\\
